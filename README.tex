@@ -1,0 +1,66 @@
+\documentclass{article}
+\usepackage{amsmath}
+
+\title{Top-Level Readme\footnote{Last Edited \today}}
+\author{Chris Horvat}
+\date{}
+
+\begin{document}
+
+\maketitle
+\noindent This is the highest-level documentation for the FSTD Model Code, version 3.0, developed beginning December 7, 2015. The code is broken down into three main sub-directories:
+\begin{enumerate}
+\item Core: This is the core code directory. Any run of the FSTD code will use this directory. This contains the code that time-steps and checks for packages. Do not edit the Core directory. 
+\item Packages: This is a folder that contains all potential sub-folder packages. For example, sea ice thermodynamics is a package that may be added.
+\item Utilities: This is a folder containing scripts that perform tasks, like integration, used commonly across packages. Utilities and all of its sub-folders will be included in every model run. 
+\end{enumerate}
+
+Every single script should have a .pdf file that describes its function. If a file does not, it will have comments in the top lines of the .m file that describe its performance and usage. 
+
+To run the code, create a run directory. Inside this directory will be three files: 
+\begin{enumerate}
+\item Set\_General\_Variables.m: This code sets variables like the domain size, the floe size discretization, the timestepping. This code determines which packages will be used.
+\item Set\_Specific\_Variables.m: This code sets the variables that describe the workings of a given run. 
+\item Run\_Wrapper.m: This code is used as a wrapper for all runs and loops over the individual runs in a set. It contains a command to Drive\_FSTD, which is the main driver for the code in Core. 
+\end{enumerate}
+
+The usage will be the following: Run\_Wrapper.m: this calls ~/Core/Drive\_FSTD.m, which calls Set\_*\_Variables.m and executes the code. 
+
+
+An example run script is given in the folder Experiments/Simple\_Run/Drive\_FSTD.m. This script runs a single timestep of the code with default forcing fields. 
+
+
+\newpage
+
+\paragraph{How the FSTD is defined in the code}
+The object of all of this is to evaluate the equations that determine the evolution of $\psi(r,h)$, which we call the floe size and thickness distribution. To do, we define two grids, which are called FSTD.R, and FSTD.H, and these are vectors: $R = \{R_i\}_{1..N_r}$, $H = \{H_j\}_{1...N_h}$. Each index determines the left and right endpoint of an interval. The function $\psi_{i,j}$, which has units of $m^2$, is defined as the total grid area that is comprised of floes who have a size between $R_i$ and $R_{i+1}$, and a thickness between $H_j$ and $H_{j+1}$. The total ice concentration $c$, therefore, is equal to 
+$$ c = \sum\limits_{i=1}^{N_r-1}\sum\limits_{j=1}^{N_h-1} \psi_{ij},$$
+simple as that! The choice to define $\psi$ this way is deliberate: it makes it easier to get around concerns about interval widths that arise when we use the \textit{true} FSTD, $f(r,h)$. 
+
+Because $\psi$ is the total area within an interval, this means the vectors $R$ and $H$ do not represent the material properties of ice inside each interval. We make the simplifying assumption that floes between $R_i$ and $R_{i+1}$ have floe sizes and thicknesses that are uniformly distributed between the two endpoints, so that they have a size equal to the mean value between $i$ and $i+1$. Therefore we define new vectors, called FSTD.Rhalf and FSTD.Hhalf, which represent the midpoint in each interval. 
+\begin{align*}
+\mathrm{FSTD.Rhalf_i} &= \frac12\left(\mathrm{FSTD.R}_i + \mathrm{FSTD.R}_{i+1}\right) \\
+\mathrm{FSTD.Hhalf_j} &= \frac12\left(\mathrm{FSTD.H}_j + \mathrm{FSTD.H}_{j+1}\right)
+\end{align*}
+So if we want to calculate the mean floe size of all the ice, $\overline{R}$, we would evaluate
+\begin{equation}
+\overline{R} =  \sum\limits_{i=1}^{N_r-1}\sum\limits_{j=1}^{N_h-1} \psi_{ij}\left.R_{1/2}\right._i 
+\end{equation}
+
+\paragraph{Largest thickness and size categories}
+When two floes combine, they get larger in both size and thickness. In general, the way this happens is handled by each process. There can be issues at the extrema, however. When two floes that are in size category $R_i$ combine, they form ice that is larger than $R_{i+1}$. So where do they go? We handle this by defining a new floe size, $R_{max}$. This is essentially $\left.R_{1/2}\right._{N_r}$, the mean floe size of all ice thicker than $R_{N_r}$. Two floes that combine in this category do not change category, and $R_{max}$ is constant throughout the simulation. This represents the largest size in the simulation, and so should be comparable to the grid size. 
+
+Thickness is another story. When two floes combine that are in the largest thickness category, they get thicker. This is a problem, because we need to conserve volume most of all. If we define a fixed maximum thickness $H_{max}$, then two floes of size $H_{max}$ that combine will result in a slightly smaller area, but no changed thickness. Therefore ice volume will decrease!!! We get around this by allowing $H_{max}$ to vary. It changes at each timestep according to 
+\begin{equation}
+H_{max}^{k+1} = \frac{H_{max}^k + \Delta V_{max}}{\psi_{max}^k + \Delta \psi_{max}}.  
+\end{equation}
+where $\Delta V_{max}$ is the total change in ice volume put into this highest thickness category, and $\Delta \psi_{max}$ is the same, but for ice area. Therefore we can re-write out previous equations for concentration as 
+$$ c = \sum\limits_{i=1}^{N_r-1}\sum\limits_{j=1}^{N_h-1} \psi_{ij} + \sum\limits_{i=1}^{N_r} \psi_{i,max} + \sum\limits_{j=1}^{N_h} \psi_{max,j}$$
+
+and we now just re-define $\psi$ to be $N_r \times N_h$ in size. We assume also that the upper possible thickness/size in the highest category is larger than $R_{N_r}$ by a factor of twice $R_{max}-R_{end}$, similarly for thickness. 
+
+\section{Thermodynamics Code}
+
+
+
+\end{document}
