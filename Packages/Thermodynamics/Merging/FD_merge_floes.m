@@ -14,10 +14,21 @@ if THERMO.DO
         
         
         % This is the total consolidated area, divided by the ice
-        % concentration
-        THERMO.alphamerge = 2 * THERMO.drdt * Mn1 / (1 - FSTD.conc)^2;
+        % concentration.
+        THERMO.alphamerge = 2 * THERMO.drdt * Mn1 / (1 - sum(FSTD.psi(:)))^2;
+        
+        % If the ice concentration is very close to 1, this becomes a
+        % problem. To get around this the most ice that can merge is simply
+        % equal to 50% of what exists. This will happen rarely
+        
+        if THERMO.alphamerge >= 1
+            
+            THERMO.alphamerge = .5; 
+        
+        end
         
         THERMO.loss_merge = THERMO.alphamerge * FSTD.psi;
+        THERMO.loss_merge = THERMO.loss_merge;
         THERMO.gain_merge = 0*THERMO.loss_merge;
         
         for i = 1:length(FSTD.Rmid)-1
@@ -27,7 +38,12 @@ if THERMO.DO
             % This gets the largest multiple (a factor of deltamerge)
             maxR = FSTD.Rmid(i) * THERMO.deltamerge;
             
+            % These are all the indices for which we merge into a larger
+            % category
+            
             isbigg = sum((maxR - FSTD.Rmid(i+1:end) > 0));
+            
+            
             
             THERMO.gain_merge(i+1:i+isbigg,:) = ...
                 bsxfun(@plus,THERMO.gain_merge(i+1:i+isbigg,:),1/isbigg * THERMO.loss_merge(i,:));
@@ -56,3 +72,9 @@ else
     error('Thermodynamics is not on, cannot merge floes')
     
 end
+
+if abs(sum(THERMO.diff_merge(:))) >= eps
+   
+    error('diff_merge is nonzero')
+end
+    

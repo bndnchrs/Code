@@ -22,7 +22,7 @@ if isnan(FSTD.psi)
     FSTD.eflag = 1; 
 end
 
-if abs(FSTD.opening + sum(FSTD.diff(:))) > eps
+if abs(FSTD.opening + sum(FSTD.diff(:))) > 1e-8
     disp('Bad Opening/Closing')
     FSTD.eflag = 1; 
 end

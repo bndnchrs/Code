@@ -1,17 +1,25 @@
-function [latSA,Q_o,Q_oi,Q_lead,Q_lat,Q_bas] = partition_heat_flux(FSTD,OPTS,THERMO,OCEAN,EXFORC)
+function [latSA,Q_open,Q_o,Q_oi,Q_lead,Q_lat,Q_bas] = partition_heat_flux(FSTD,OPTS,THERMO,OCEAN,EXFORC)
 % This routine partitions the incoming heat flux Q that is over open water
 % into its components,
 % some of which contribute to lateral melting, some to frazil formation,
 % and some to thickness growth.
 % For a heat flux EXFORC.Q_oc, which is the heat exchanged between the
 % atmosphere and a unit square meter of ocean, Q_oc is partitioned into
-% Q_o - The heat flux impinging directly onto open water
+% Q_open - The heat flux impinging directly onto open water
+% Q_o - The heat flux that affects open water, which is the net flux at the
+% ocean-atmosphere surface - the heat flux from ice to ocean
 % Q_lead - The heat flux that affects the development of sea ice
 
 % Q_l is partitioned into: 
 % Q_lat - the heat flux that leads to the freezing/melting of ice laterally
 % Q_bas - the heat flux that leads to the freezing/melting of ice
 % vertically
+
+% Additionally, there is a flux Q_oi which is the heat flux between ocean
+% and ice
+
+% Q_o = Q_open - Q_oi
+% Q_lead = A_l * EXFORC.Q_oc + Q_oi
 
 % First we need to calculate geometric properties of the ice cover
 
@@ -48,7 +56,7 @@ end
 %     
 % end
 
-Q_o = Ao*EXFORC.Q_oc; % Net heat flux to open water, per square meter of grid. 
+Q_open = Ao*EXFORC.Q_oc; % Net heat flux to open water, per square meter of grid. 
 % Units are W/m^2.
 
 Q_lead = Al*EXFORC.Q_oc; % Net heat flux to the lead region per square meter of grid. 
@@ -60,25 +68,31 @@ Q_lead = Al*EXFORC.Q_oc; % Net heat flux to the lead region per square meter of 
 if OCEAN.DO
     
     Q_oi = calc_oc_to_ic_hf(OCEAN);
-    % The actual net exchange will be at the ice base, so the total net
-    % heat flux per square meter of grid is Q_oi multiplied by the ice
-    % concentration. It does not depend on the FSTD but just on the ocean
-    % temperature. 
-    
-    % Q_o is the total heat exchange per square meter of grid. 
-    % Q_oi is the heat exchange per square meter of ice. Therefore we have
-    % to multiply it by the ice concentration to get the net heat flux. 
-    
-    % Then we subtract to get the net heat flux that affects the region
-    % of open water, per square meter of sea ice, as well as the same in 
-    % the lead region.
-    
-    Q_o = Q_o - conc*Q_oi; % Take this heat from the ocean
-    Q_lead = Q_lead + conc*Q_oi; % Put it into the lead region
     
 else
-    Q_oi = 0; 
+    % Otherwise it is equal to zero
+    Q_oi = 0;
+    
 end
+
+% The actual net exchange will be at the ice base, so the total net
+% heat flux per square meter of grid is Q_oi multiplied by the ice
+% concentration. It does not depend on the FSTD but just on the ocean
+% temperature.
+
+% Q_o is the total heat exchange per square meter of grid.
+% Q_oi is the heat exchange per square meter of ice. Therefore we have
+% to multiply it by the ice concentration to get the net heat flux.
+
+Q_oi = conc*Q_oi; 
+
+% Then we subtract to get the net heat flux that affects the region
+% of open water, per square meter of sea ice, as well as the same in
+% the lead region.
+
+Q_o = Q_open - Q_oi; % Take this heat from the ocean
+Q_lead = Q_lead + Q_oi; % Put it into the lead region
+
 
 % Now the total heat flux that goes to the leads is equal to the fraction
 % entering open water that goes into the lead region plus the heat flux

@@ -14,9 +14,9 @@ if ~isfield(OCEAN,'S')
     
 end
 
-if ~isfield(OCEAN,'lambda_ll')
+if ~isfield(OCEAN,'lambda_rest')
     % The restoring timescale to deep ocean values
-    OCEAN.lambda_ll = 7*86400; 
+    OCEAN.lambda_rest = 7*86400; 
 
 end
 
@@ -30,6 +30,12 @@ end
 if ~isfield(OCEAN,'Tfrz')
     
     OCEAN.Tfrz = -1.8; % Freezing Temperature of seawater
+    
+end
+
+if ~isfield(OCEAN,'T_rest')
+    
+    OCEAN.T_rest = OCEAN.Tfrz; % Freezing Temperature of seawater
     
 end
 

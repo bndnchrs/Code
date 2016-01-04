@@ -36,7 +36,7 @@ if MECH.DO
     MECH.In_raft = MECH.In;
     MECH.Out_ridge = MECH.Out;
     MECH.Out_raft = MECH.Out;
-    MECH.Out_max_ridge = zeros(length(FSTD.R),1);
+    MECH.Out_max_ridge = zeros(length(FSTD.Rmid),1);
     MECH.Out_max_raft = MECH.Out_max_ridge;
     MECH.In_max_ridge = MECH.Out_max_ridge;
     MECH.In_max_raft = MECH.Out_max_ridge;

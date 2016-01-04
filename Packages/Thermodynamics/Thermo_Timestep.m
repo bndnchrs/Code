@@ -3,7 +3,7 @@
 % This routing calculates the tendency due to one thermodynamic timestep
 % Determine what portion of the heat flux goes where over open water
 
-[FSTD.latSA,THERMO.Q_o,OCEAN.Q_oi,THERMO.Q_lead,THERMO.Q_lat,THERMO.Q_bas] = partition_heat_flux(FSTD,OPTS,THERMO,OCEAN,EXFORC); 
+[FSTD.latSA,THERMO.Q_open,THERMO.Q_o,OCEAN.Q_oi,THERMO.Q_lead,THERMO.Q_lat,THERMO.Q_bas] = partition_heat_flux(FSTD,OPTS,THERMO,OCEAN,EXFORC); 
 
 % This returns the following partitioning of a net heat flux EXFORC.Q_oc 
 % That is the total heating per square meter of water. 
@@ -45,7 +45,8 @@ if THERMO.Q_o < 0 && ~OCEAN.DO
 
 else
     
-    % If we are heating, or the ocean is on, we don't do this quite yet.
+    % If we are heating, or the ocean is on, we don't do this quite yet,
+    % and instead we do it within the OCEAN code. 
     THERMO.pancakes = 0;
     
 end

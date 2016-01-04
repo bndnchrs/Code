@@ -1,21 +1,21 @@
 %% FD_initialize_diagnostics
 % This code initializes all the diagnostics arrays that will be used in the
 % execution of the FSD code. Whenever a diagnostic is added to this file,
-% it must also be added to the script FSTD_Diagnostics.m; 
+% it must also be added to the script FSTD_Diagnostics.m;
 
-% Concerns whether we plot out output. Default is no. 
+% Concerns whether we plot out output. Default is no.
 if ~isfield(DIAG,'PLOT_DO')
-    DIAG.PLOT_DO = 0; 
+    DIAG.PLOT_DO = 0;
 end
 
 if FSTD.DO
     
-    % Create a structure for the FSTD Diagnostics. 
-    DIAG.FSTD = struct(); 
+    % Create a structure for the FSTD Diagnostics.
+    DIAG.FSTD = struct();
     
-        % Diagnostics for general FSTD. We may add as we go. 
-
-        
+    % Diagnostics for general FSTD. We may add as we go.
+    
+    
     %% Multi-dimensional diagnostics
     
     dum_diag = zeros([size(FSTD.psi) OPTS.nt + 1]); % Something as large as psi
@@ -38,11 +38,6 @@ if FSTD.DO
     
 end
 
-if MECH.DO == 1
-    % We may add these as we go
-    DIAG.MECH = struct(); 
-    
-end
 
 if THERMO.DO == 1
     % Diagnostics for thermodynamic mode
@@ -57,30 +52,64 @@ if THERMO.DO == 1
     
     dum_diag = zeros(1,OPTS.nt+1);
     
-    DIAG.THERMO = struct(); 
-    DIAG.THERMO.Q_lead = dum_diag; 
+    DIAG.THERMO = struct();
+    DIAG.THERMO.Q_lead = dum_diag;
     DIAG.THERMO.Q_lat = dum_diag;
     DIAG.THERMO.Q_o = dum_diag;
+    DIAG.THERMO.Q_open = dum_diag;
     DIAG.THERMO.Q_bas = dum_diag;
-    DIAG.THERMO.dV = dum_diag; 
-    DIAG.THERMO.drdt = dum_diag; 
-    DIAG.THERMO.dc_adv = dum_diag; 
-    DIAG.THERMO.dc_pan = dum_diag; 
-    DIAG.THERMO.dc_edge = dum_diag; 
+    DIAG.THERMO.dV = dum_diag;
+    DIAG.THERMO.drdt = dum_diag;
+    DIAG.THERMO.dc_adv = dum_diag;
+    DIAG.THERMO.dc_pan = dum_diag;
+    DIAG.THERMO.dc_edge = dum_diag;
     DIAG.THERMO.dc_tot = dum_diag;
+    DIAG.THERMO.diffnet = dum_diag; 
+
 end
 
 if WAVES.DO
     % Diagnostics for wave mode
     % We may add as we go
-    DIAG.WAVES = struct(); 
+    DIAG.WAVES = struct();
+    
+    dum_diag = zeros(1,OPTS.nt+1);
+    DIAG.WAVES.tau = dum_diag; 
+    DIAG.WAVES.diffnet = dum_diag; 
+    
+end
+
+if MECH.DO
+    DIAG.MECH = struct();
+    
+    dum_diag = zeros(1,OPTS.nt+1);
+    DIAG.MECH.mag = dum_diag;
+    DIAG.MECH.epsI = dum_diag;
+    DIAG.MECH.epsII = dum_diag;
+    DIAG.MECH.diffnet = dum_diag; 
+    
+end
+
+if ADVECT.DO
+    DIAG.ADAVECT = struct(); 
+    
+    dum_diag = zeros(1,OPTS.nt+1);    
+    DIAG.ADVECT.diffnet = dum_diag; 
     
 end
 
 if OCEAN.DO
     % Diagnostics for ocean mode
     % Add as we go
-    DIAG.OCEAN = struct(); 
+    DIAG.OCEAN = struct();
+    
+    dum_diag = zeros(1,OPTS.nt+1);
+    DIAG.OCEAN.T = dum_diag;
+    DIAG.OCEAN.S = dum_diag;
+    DIAG.OCEAN.pancakes = dum_diag;
+    DIAG.OCEAN.Qrest = dum_diag;
+    DIAG.OCEAN.Q_to_ice = dum_diag;
+    DIAG.OCEAN.Q_open = dum_diag;
     
 end
 

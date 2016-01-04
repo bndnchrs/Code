@@ -11,8 +11,8 @@ OPTS.numSC = 0;
 
 if MECH.DO
     
-    MECH.gamma_ridge = calc_gamma_ridge_FD([FSTD.H FSTD.H_max],meshH, MECH.H_raft);
-    MECH.gamma_raft = 1 -  MECH.gamma_ridge;
+    MECH.gamma_raft = calc_gamma_raft_FD(FSTD.Hmid,FSTD.meshHmid,MECH.H_raft);
+    MECH.gamma_ridge = 1 -  MECH.gamma_raft;
     
 end
 
@@ -21,3 +21,5 @@ end
 % Reset the open water and concentration
 FSTD.conc = sum_FSTD(FSTD.psi,FSTD.one,0); 
 FSTD.openwater = 1 - FSTD.conc;
+
+FSTD.NumberDist = FSTD.psi./(pi*FSTD.meshR.^2);

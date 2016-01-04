@@ -1,3 +1,4 @@
+
 function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT] = FSTD_timestep(FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT)
 % Updated 12/8/2015 - Chris Horvat
 
@@ -5,14 +6,14 @@ function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT] = FSTD_timestep(
 % performing a minimum number of sub-cycles. The way this works is defined
 % in a README.pdf file.
 
-% Get the grid-level forcing parameters
-get_external_forcing;
-
 % Using the current thicknesses, update gridded size/thickness categories
 update_grid;
 
 % Reset counting variables and difference matrices
 reset_global_variables;
+
+% Get the grid-level forcing parameters
+get_external_forcing;
 
 
 %% Actual Sub Timestep
@@ -43,7 +44,7 @@ while OPTS.dt_sub > 0
             Thorndike_timestep;
         else
             
-            FD_timestep_mech_v1;
+            Mech_Timestep;
             
         end
         
@@ -86,8 +87,8 @@ while OPTS.dt_sub > 0
     
     if WAVES.DO == 1 && EXFORC.stormy(FSTD.i)
         
-        % FD_timestep_swell;
-        FD_timestep_real_swell;
+        Waves_Timestep;
+        
         FSTD.diff = FSTD.diff + WAVES.diff;
         FSTD.V_max_in = FSTD.V_max_in + WAVES.V_max_in;
         FSTD.V_max_out = FSTD.V_max_out + WAVES.V_max_out;
@@ -98,7 +99,7 @@ while OPTS.dt_sub > 0
     
     if OCEAN.DO && THERMO.DO
         
-        Ocean_Timestep; 
+        Ocean_Timestep;
         
         % From pancake growth
         % We keep the same timestep here: will this be a problem later?
@@ -109,7 +110,7 @@ while OPTS.dt_sub > 0
     end
     
     FSTD.dV_max = FSTD.V_max_in - FSTD.V_max_out;
-
+    
     %% Maximal Timestep
     % Calculate the maximal timestep possible so that the FSTD is never
     % smaller than zero anywhere.
@@ -128,10 +129,6 @@ while OPTS.dt_sub > 0
     
     %% Update the main variables psi, openwater, and ocean variables
     update_psi;
-    
-    if OCEAN.DO
-        update_ocean;
-    end
     
     %% Update those local variables which will change on each timestep
     
@@ -158,7 +155,20 @@ if DIAG.DO
     FSTD_Diagnostics;
 end
 
-pcolor(FSTD.Rmid,FSTD.H,log10(FSTD.psi+eps)')
-set(gca,'clim',[-8 -1]);
-shading interp
+if mod(FSTD.i,1) == 0
+    
+    subplot(121)
+    if sum(FSTD.psi(:)) ~= 0
+        
+        semilogy(FSTD.Rmid,FSTD.psi)
+        hold on
+        semilogy(FSTD.Rmid,ADVECT.FSTD_in,'r')
+        hold off
+    end
+    subplot(222)
+    plot(DIAG.FSTD.conc)
+    subplot(224)
+    plot(DIAG.FSTD.Hmax)
+end
+
 drawnow

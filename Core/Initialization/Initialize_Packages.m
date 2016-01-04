@@ -3,6 +3,9 @@ function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT] = Initialize_Pac
 % This second-level program contains calls to the initialization schemes
 % for each process
 
+% Calculate the things like FSTD.conc and FSTD.psi
+Init_Psi; 
+
 %% Initialize the Thermodynamic Model Component
 
 if THERMO.DO
@@ -33,9 +36,9 @@ end
 
 if MECH.DO
     
-    addpath('./Mechanics/')
+    addpath([OPTS.path_of_code 'Packages/Mechanics/'])
     fprintf('INITIALIZING MECHANICS \n')
-    FD_initialize_mechanics;
+    Mech_Init;
     
     %     if isfield(MECH,'do_Thorndike') && MECH.do_Thorndike == 1
     %         addpath('./Thorndike_Mechanics/');
@@ -51,9 +54,9 @@ end
 %% Initialize the Advective Mode
 if ADVECT.DO
     
-    addpath('./Advection/')
+    addpath([OPTS.path_of_code 'Packages/Advection/']);
     fprintf('INITIALIZING ADVECTION \n')
-    initialize_advection;
+    Advect_Init; 
     
     
 end
@@ -62,17 +65,20 @@ end
 
 
 if WAVES.DO
+    
     fprintf('INITIALIZING WAVES FRACTURE \n')
     
-    addpath('./Swell/')
+    addpath([OPTS.path_of_code 'Packages/Waves/'])
     
-    FD_initialize_swell;
+    Waves_Init; 
+    
 end
 
 %% Initialize the Ocean Model
 
 
 if OCEAN.DO
+    
     fprintf('INITIALIZING OCEAN MODEL \n')
     
     addpath([OPTS.path_of_code 'Packages/1D_Ocean/'])

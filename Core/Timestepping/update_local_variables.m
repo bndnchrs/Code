@@ -83,7 +83,7 @@ end
 % thickness category, we have to adjust where the ice is. 
 
 
-if ~isempty(FSTD.H) && FSTD.H_max < FSTD.H(end)
+if size(FSTD.H,2) > 1 && FSTD.H_max < FSTD.H(end)
     
     % This is the total volume in the thickest ice class (variable) and in
     % the maximum ice thickness category

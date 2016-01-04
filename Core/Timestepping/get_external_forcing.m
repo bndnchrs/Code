@@ -9,15 +9,14 @@ if THERMO.DO
     
 end
 
-if OCEAN.DO
-    
+if ADVECT.DO
+
     % Get the ocean strain rate from ocean currents (influences ADVECT)
-    Ocean_Forcing;
+    Advective_Forcing;
     
 end
 
 if MECH.DO
-
     % Get the strain rate
     get_ice_strain_rate;
     

@@ -27,3 +27,10 @@ FSTD.psi_spec = FSTD.psi ./ FSTD.dA;
 % Reset the open water and concentration
 FSTD.conc = sum_FSTD(FSTD.psi,FSTD.one,0); 
 FSTD.openwater = 1 - FSTD.conc;
+
+if OCEAN.DO && THERMO.DO
+    
+    OCEAN.T = OCEAN.T + OPTS.dt_temp * OCEAN.dTdt;
+    OCEAN.S = OCEAN.S + OPTS.dt_temp * OCEAN.dSdt;
+    
+end

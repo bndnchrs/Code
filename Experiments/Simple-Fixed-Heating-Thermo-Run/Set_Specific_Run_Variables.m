@@ -3,7 +3,7 @@ function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT]  = Set_Specific_
 % In order to validate a process, it must be added to this call here
 
 FSTD.DO = 1; % Do the main model stuff
-OCEAN.DO = 1; % Whether or not to use the ocean model. 
+OCEAN.DO = 0; % Whether or not to use the ocean model. 
 MECH.DO = 0;
 THERMO.DO = 1;
 WAVES.DO = 0; % Wave Fracture
@@ -14,31 +14,20 @@ DIAG.DO = 1; % Diagnostics Package
 DIAG.DOPLOT = 0; % Plot Diagnostics?
 
 %% Set Thermo Options and External Forcing
-THERMO.fixQ = 0; % Fix the heat flux
+THERMO.fixQ = 1; % Fix the heat flux
 
-if THERMO.fixQ
-    
-    THERMO.fixed_Q = -100 + zeros(1,OPTS.nt); % The fixed heat flux as a function of index
-    
-else
-    % 200 heating from solar
-    % 200 cooling from longwave.
-    EXFORC.QSW = 350*cos(2*pi*OPTS.time/OPTS.year); 
-    EXFORC.QSW(EXFORC.QSW < 0) = 0; 
-    EXFORC.QLW = 200 + zeros(1,OPTS.nt);
-    
-end
+Qin = -50; 
 
-
+THERMO.fixed_Q = Qin + zeros(1,OPTS.nt); % To be Q_fixed
 
 %% Initial Conditions
 % Initial Distribution has all ice at one floe size. 
 var = [2.5^2 .125^2];
+% Make a Gaussian at thickness 1.5 m and size 25 m with variance var.
 
-ps1 = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[15 1.5],var);
-ps2 = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[25 1.5],var);
-psi = ps2/sum(ps2(:));
+psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[25 1.5],var);
+psi = psi/sum(psi(:));
 psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
-FSTD.psi = .5*psi/sum(psi(:));
 
-OPTS.H_0 = sum_FSTD(FSTD.psi,FSTD.Hmid,1);
+% Initial concentration is 50%
+FSTD.psi = .5*psi/sum(psi(:));
