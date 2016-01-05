@@ -12,8 +12,8 @@ WAVES.Lambda = WAVES.Per.^(2)*OPTS.g/(2*pi);
 
 % This is the integral over N x R / integral over N, so the mean floe size
 % by number
-rbar = integrate_FSTD(FSTD.NumberDist,FSTD.Rmid',FSTD.dA,1)
-rbar = integrate_FSTD(FSTD.psi,FSTD.Rmid',FSTD.dA,1)
+rbar = integrate_FSTD(FSTD.NumberDist,FSTD.Rmid',FSTD.dA,1);
+rbar = integrate_FSTD(FSTD.psi,FSTD.Rmid',FSTD.dA,1);
 
 % This is the integral over psi x H / integral over psi, so the mean ice
 % thickness. This is also the same as the volume (psi x H) divided by the

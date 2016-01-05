@@ -76,7 +76,7 @@ if diag_ind > 1 % Only do this once we've started
         DIAG.WAVES.In(:,:,diag_ind) = WAVES.In; % The full FSTD
         DIAG.WAVES.Out(:,:,diag_ind) = WAVES.Out; % The total change per timestep for all components
         DIAG.WAVES.diffnet(diag_ind) = sum(abs(WAVES.diff(:)));  
-
+        
     end
     
     

@@ -15,7 +15,7 @@ ADVECT = struct();
 
 
 % Set General options
-OPTS.nt = 30; % Number of timesteps
+OPTS.nt = 10; % Number of timesteps
 OPTS.dt = 12*86400; % Timestep duration
 OPTS.nh = 13; % No. of thickness categories 
 
@@ -27,12 +27,9 @@ OPTS.time = linspace(OPTS.dt,OPTS.nt*OPTS.dt,OPTS.nt);
 % Initial discretization. Spaced at spacing to guarantee conservation of
 % volume using mechanics. 
 
-FSTD.Rint(1) = .5;
-for i = 2:65
-    FSTD.Rint(i) = sqrt(2*FSTD.Rint(i-1)^2 - (4/5) * FSTD.Rint(i-1)^2);
-end
+FSTD.Rint = logspace(log10(5),3,50); 
 
-FSTD.Rint = linspace(10,200,20); 
+FSTD.Rint = linspace(25,2000,80); 
 
 OPTS.nr = length(FSTD.Rint); % Number of size categories
 FSTD.H = 2; % Thickness Vector
@@ -50,7 +47,7 @@ THERMO.SHLambda = 0;
 
 %% Set Swell Fracture Options
 OPTS.Domainwidth = 5e4;
-WAVES.epscrit = .001;
+WAVES.epscrit = 3e-5;
 
 WAVES.smoothing = 1; 
 

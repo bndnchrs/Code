@@ -77,6 +77,10 @@ if WAVES.DO
     DIAG.WAVES.tau = dum_diag; 
     DIAG.WAVES.diffnet = dum_diag; 
     
+    dum_diag = zeros([size(FSTD.psi) OPTS.nt+1]);
+    DIAG.WAVES.In = dum_diag; 
+    DIAG.WAVES.Out = dum_diag; 
+    
 end
 
 if MECH.DO
