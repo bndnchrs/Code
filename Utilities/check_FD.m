@@ -9,12 +9,11 @@ if FSTD.H_max < 0
 
 end
 
- if sum(FSTD.psi(:)) > 1 + 1e-8
-     sum(FSTD.psi(:))
+if integrate_FSTD(FSTD.psi,1,FSTD.dA,0) > 1 + 1e-8
      disp('Too much conc')
      FSTD.i
      FSTD.eflag = 1; 
- end
+end
 
 if isnan(FSTD.psi)
     disp('NaNned out')
@@ -22,10 +21,10 @@ if isnan(FSTD.psi)
     FSTD.eflag = 1; 
 end
 
-if abs(FSTD.opening + sum(FSTD.diff(:))) > 1e-8
-    disp('Bad Opening/Closing')
-    FSTD.eflag = 1; 
-end
+% if abs(FSTD.opening + sum(FSTD.diff(:))) > 1e-8
+%     disp('Bad Opening/Closing')
+%     FSTD.eflag = 1; 
+% end
 
 if min(FSTD.psi(:)) < 0
     disp(FSTD.i)

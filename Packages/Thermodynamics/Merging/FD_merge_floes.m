@@ -15,7 +15,7 @@ if THERMO.DO
         
         % This is the total consolidated area, divided by the ice
         % concentration.
-        THERMO.alphamerge = 2 * THERMO.drdt * Mn1 / (1 - sum(FSTD.psi(:)))^2;
+        THERMO.alphamerge = 2 * THERMO.drdt * Mn1 / (1 - sum(FSTD.psi(:)));
         
         % If the ice concentration is very close to 1, this becomes a
         % problem. To get around this the most ice that can merge is simply
@@ -32,6 +32,7 @@ if THERMO.DO
         THERMO.gain_merge = 0*THERMO.loss_merge;
         
         for i = 1:length(FSTD.Rmid)-1
+            
             % Largest floe size does not experience merging
             % For each floe size
             

@@ -16,11 +16,11 @@ FSTD.meshV = pi*FSTD.meshR.^2 .* FSTD.meshH;
 %% Define the Staggered Grid
 
 % Define the R vector that lies between subsequent size categories. This is
-% the mean floe size in each bin. 
+% the mean floe size in each bin.
 if length(FSTD.Rint) > 1
     % R(1/2) = R(1)/2+R(2)/2
     FSTD.Rmid = .5*(FSTD.Rint(2:end) + FSTD.Rint(1:end-1));
-    FSTD.Rmid(end+1) = FSTD.R_max; 
+    FSTD.Rmid(end+1) = FSTD.R_max;
     
 else
     
@@ -32,7 +32,7 @@ end
 % This is the mean thickness in each bin
 if length(FSTD.H) > 1
     FSTD.Hmid = .5*([FSTD.H(2:end)] + FSTD.H(1:end-1));
-    FSTD.Hmid = [FSTD.Hmid FSTD.H_max]; 
+    FSTD.Hmid = [FSTD.Hmid FSTD.H_max];
 else
     FSTD.Hmid= FSTD.H_max;
 end
@@ -56,7 +56,7 @@ FSTD.dH = diff(FSTD.H);
 % represents a median, with an interval width equal to twice the difference
 % between H_max and max(H).
 
-FSTD.dH_max = 2*(FSTD.H_max - FSTD.H(end)); 
+FSTD.dH_max = 2*(FSTD.H_max - FSTD.H(end));
 
 if length(FSTD.H) > 1
     FSTD.dH = [FSTD.dH FSTD.dH_max];
@@ -64,7 +64,33 @@ else
     FSTD.dH = FSTD.H;
 end
 
-FSTD.dA = bsxfun(@times,FSTD.dH,FSTD.dR'); 
+% We run this command to address the fact that the grid can change at each
+% timestep, and we need to adjust it.
+if isfield(FSTD,'dA')
+    % The first time the model runs, there is no dA yet.
+    
+    FSTD.dA0 = FSTD.dA;
+    
+end
+
+FSTD.dA = bsxfun(@times,FSTD.dH,FSTD.dR');
+
+%
+if isfield(FSTD,'dA0')
+    
+    % Because the final floe thickness may change, we can have the
+    % situation where the size of the final floe category may change as
+    % well. Therefore this makes FSTD.psi(end,end) * FSTD.dA(end,end) grow
+    % or shrink, which changes the concentration. Therefore we need to
+    % shift that value of FSTD.psi to account for this.
+    % Before c = FSTD.psi_before .* FSTD.dA0
+    % Now, c = FSTD.psi_now .* FSTD.dA
+    % which means FSTD.psi_now = FSTD.psi_before * FSTD.dA0 / FSTD.dA;
+    
+    FSTD.psi = FSTD.psi .* (FSTD.dA0./FSTD.dA);
+    FSTD.diff = FSTD.diff .* (FSTD.dA0./FSTD.dA);
+    
+end
 
 [FSTD.meshRmid,FSTD.meshHmid] = meshgrid(FSTD.Rmid,FSTD.Hmid);
 

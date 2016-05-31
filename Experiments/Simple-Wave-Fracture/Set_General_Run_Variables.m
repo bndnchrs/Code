@@ -15,7 +15,7 @@ ADVECT = struct();
 
 
 % Set General options
-OPTS.nt = 24; % Number of timesteps
+OPTS.nt = 48; % Number of timesteps
 OPTS.dt = 3600; % Timestep duration
 OPTS.nh = 13; % No. of thickness categories 
 
@@ -45,4 +45,6 @@ OPTS.h_p = .1; % Minimum thickness category
 
 %% Set General Waves Options
 WAVES.maxcounts = 5; 
+OPTS.Domainwidth = 1e5; 
+
 

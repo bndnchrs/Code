@@ -4,8 +4,12 @@
 
 if WAVES.prescribe_spec
     % If we want to prescribe the spectrum
+    
     WAVES.spec = EXFORC.wavespec(FSTD.i,:);
+    WAVES.P_z = integrate_FSTD(WAVES.spec,WAVES.Per,[WAVES.Per(1) diff(WAVES.Per)],1); 
+
 else
+    
     % Bretschneider Spectrum
     WAVES.spec = (1/(4*OPTS.g))*(WAVES.H_s^2/WAVES.P_z^2).*(WAVES.Per/WAVES.P_z).^2 .* ... 
     exp((-1/pi) * (WAVES.Per/WAVES.P_z).^4); 

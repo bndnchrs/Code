@@ -116,10 +116,10 @@ while OPTS.dt_sub > 0
     %% Maximal Timestep
     % Calculate the maximal timestep possible so that the FSTD is never
     % smaller than zero anywhere.
-    OPTS.dt_temp = calc_max_timestep(FSTD.psi,FSTD.diff,OPTS.dt_sub,0,FSTD.dA,OPTS.debug);
+    OPTS.dt_temp = calc_max_timestep(FSTD.psi,FSTD.diff,OPTS.dt_sub,0,FSTD.dA,1);
     % Now calculate the maximal timestep so that the volume in the highest
     % thickness category is >= 0.
-    OPTS.dt_temp = calc_max_timestep(FSTD.V_max,FSTD.dV_max,OPTS.dt_temp,1,FSTD.dA,OPTS.debug);
+    OPTS.dt_temp = calc_max_timestep(FSTD.V_max,FSTD.dV_max,OPTS.dt_temp,1,FSTD.dA(end,end),1);
     
     % If there is an error, dt_temp comes back as a string. We then error
     % ourselves out.
@@ -157,8 +157,74 @@ if DIAG.DO
     FSTD_Diagnostics;
 end
 
-%% Do Plotting
+if mod(FSTD.i,1) == 0
+    
+    %% Do Plotting Here
+    
+    cols = [228,26,28
+        55,126,184
+        77,175,74
+        152,78,163
+        255,127,0]/256;
+    
+    %     subplot(121)
+    %     pcolor(FSTD.Rint,FSTD.H,log10(FSTD.psi.*FSTD.dA)');
+    %     set(gca,'clim',[-4 0])
+    %     shading interp
+    %     grid on
+    %     box on
+    %     set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',12)
+    %     xlabel('Size')
+    %     ylabel('Thickness')
+    %
+    %     subplot(122)
+    
+    
+    subplot(121)
+    hold on
+    plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i)/DIAG.FSTD.Vtot(1),'color',cols(1,:),'linewidth',2)
+    plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.conc(1:FSTD.i)/DIAG.FSTD.conc(1),'color',cols(2,:),'linewidth',2)
+    % Thickness
+    plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmean(1:FSTD.i)/DIAG.FSTD.Hmean(1),'color',cols(3,:),'linewidth',2)
+    hold off
+    ylim([.75 1.25])
+    xlim([0 max(DIAG.FSTD.time(FSTD.i)/86400,1)])
+    
+    legend('Volume','Conc','Thick')
+    grid on
+    box on
+    xlabel('Time (days)')
+    ylabel('Frac. of initial')
+    set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',12)
+    
+    
+    subplot(122)
+    plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeanarea(1:FSTD.i),'color',cols(4,:))
+    hold on
+    [a,b] = max(WAVES.spec);
+    
+    % This is R which is half the wavelength of the peak period
+    R_longterm = FSTD.Rmid(b);
+    % This is the initial mean floe size
+    R_init = FSTD.Rmid(end);
+    
+    R_pred = R_longterm + exp(1).^(-DIAG.FSTD.time(1:FSTD.i)/WAVES.tau)*(R_init - R_longterm);
+    plot(DIAG.FSTD.time(1:FSTD.i)/86400,R_pred,'--','color',cols(3,:));
+    
+    plot(DIAG.FSTD.time(1:FSTD.i)/86400,0*DIAG.FSTD.time(1:FSTD.i) + FSTD.Rmid(b),'--k');
+    
+    hold off
+    xlim([0 max(DIAG.FSTD.time(FSTD.i)/86400,1)])
+    ylim([0 max(FSTD.Rmid)])
+    legend('Floe Size','Half of Peak Period')
+    grid on
+    box on
+    xlabel('Time (days)')
+    ylabel('Floe Size')
+    set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',12)
+    pos = [8 4];
+    set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
+    
+end
 
-FD_timestep_plot; 
-
-
+drawnow

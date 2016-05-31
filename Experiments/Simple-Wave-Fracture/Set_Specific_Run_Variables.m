@@ -14,6 +14,13 @@ DIAG.DO = 1; % Diagnostics Package
 DIAG.DOPLOT = 0; % Plot Diagnostics?
 
 %% Set Waves Options and External Forcing
+EXFORC.wavespec = zeros(OPTS.nt,length(FSTD.Rmid));
+
+% Pick a swell wave with a peak wavelength near 100 meters
+ind = find(FSTD.Rmid > 100,1); 
+
+EXFORC.wavespec(:,ind) = 1; 
+
 
 
 %% Initial Conditions
@@ -29,4 +36,4 @@ psi = 0*psi;
 psi(end,end) = 1;
 
 % Initial concentration is 50%
-FSTD.psi = .5*psi/sum(psi(:));
+FSTD.psi = .5*psi/sum(psi(:).*FSTD.dA(:)); 

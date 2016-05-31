@@ -13,7 +13,7 @@ WAVES.tau = OPTS.Domainwidth / (WAVES.v_group_coeff * (1/2)*(OPTS.g*WAVES.Lambda
 % cts contains the total number of new floes formed in each size class
 WAVES.bin_cts = zeros(length(FSTD.Hmid),length(FSTD.Rmid));
 
-WAVES.Omega = 0*FSTD.psi; 
+WAVES.Omega = 0*FSTD.psi;
 
 % dX is the vector of all of the fracture lengths (i.e. the distance
 % between subsequent fracture lengths. It will be added to on each timestep
@@ -126,27 +126,34 @@ end
 % smoother
 %%
 
-if sum(abovelocs) > 1
-    for jind = 1:size(abovelocs,1)
+for jind = 1:size(abovelocs,1)
+    
+    
+    if sum(dX{jind}) > 1
         
         [A{jind},edges{jind}]  = histcounts(dX{jind},[Rhist Inf]);
         WAVES.bin_cts(jind,:) = A{jind};
         smoothcts(jind,:) = ksdensity(dX{jind},FSTD.Rmid);
+        
+    else
+        
+        smoothcts(jind,:) = 0*WAVES.bin_cts(jind,:);
     end
-else
-    smoothcts = 0*WAVES.bin_cts; 
 end
 
+%%
+smoothcts = bsxfun(@rdivide,smoothcts,sum(bsxfun(@times,smoothcts+eps,FSTD.dR),2));
 
 %%
 if WAVES.smoothing
-
-WAVES.bin_cts = smoothcts;
-
+    
+    WAVES.bin_cts = smoothcts;
+    
 end
-  
+
 %%
 
+Frac = bsxfun(@rdivide,bsxfun(@times,smoothcts,FSTD.Rmid),sum(bsxfun(@times,smoothcts+eps,FSTD.Rmid.*FSTD.dR),2));
 
 WAVES.In = 0*FSTD.psi;
 WAVES.Out = 0*FSTD.psi;
@@ -160,19 +167,19 @@ if sum(abovelocs) > 1
         for j = 1:length(FSTD.H)
             % The FSD is the relative proportion of counts for all sizes
             % smaller than size i, and it is normalized to one.
-            WAVES.F(i,j,:) = [smoothcts(j,1:i).*dRHist(1:i).*FSTD.Rmid(1:i) zeros(1,length(FSTD.Rmid)-i)]';
-            WAVES.F(i,j,:) = WAVES.F(i,j,:) / sum(squeeze(WAVES.F(i,j,:)));
+            WAVES.F(i,j,:) = [Frac(j,1:i) zeros(1,length(FSTD.Rmid)-i)]';
+            WAVES.F(i,j,:) = squeeze(WAVES.F(i,j,:))'.*FSTD.dR / sum(eps + squeeze(WAVES.F(i,j,:))'.*FSTD.dR);
             
             % If there aren't any of these, so that we get a NaN, just set
             % it to zero.
-            if isnan(sum(squeeze(WAVES.F(i,j,:)).*dRHist'))
-                WAVES.F(i,j,:) = zeros(1,length(dRHist));
+            if isnan(sum(squeeze(WAVES.F(i,j,:)).*FSTD.dR'))
+                WAVES.F(i,j,:) = zeros(1,length(FSTD.dR));
             end
             
             % Now the fraction of domain covered in floes of size i that
             % will fracture is the total length of fracture lengths smaller
             % than i, divided by the total length of all fractures.
-            WAVES.Omega(i,j) = sum(FSTD.Rmid(1:i).*WAVES.bin_cts(jind,1:i)) / sum(FSTD.Rmid.*WAVES.bin_cts(jind,:));
+            WAVES.Omega(i,j) = sum(FSTD.Rmid(1:i).*WAVES.bin_cts(jind,1:i)) / sum(eps + FSTD.Rmid.*WAVES.bin_cts(jind,:));
             
         end
     end
@@ -182,16 +189,22 @@ if sum(abovelocs) > 1
     for r1 = 1:length(FSTD.Rmid)
         % Integrate over floe sizes
         for h1 = 1:length(FSTD.H)
-            % The time rate of change of Psi due to fracture of (i,j) is
-            % dpsi(k,j), equal to:            
-            % (1/tau) * OMEGA(i,j) * Psi(i,j) *  F(i,j,k)
-            dpsi = (1/WAVES.tau) * WAVES.Omega(r1,h1) * FSTD.psi(r1,h1) * squeeze(WAVES.F(r1,h1,:));
+            % The total rate of loss of ice concentration due to fracture
+            % is (1/tau) * OMEGA(i,j) * Psi(i,j) * dA(i,j)
             
-            % Now we just move this area in to that category
-            WAVES.In(:,h1) = WAVES.In(:,h1) + (1/WAVES.tau) * WAVES.Omega(r1,h1) * FSTD.psi(r1,h1) * squeeze(WAVES.F(r1,h1,:));
+            % The total rate of gain of concentration into floe size
+            % category (k,j) is
+            % (1/tau) * OMEGA(i,j) * Psi(i,j) * dA(i,j) * F(i,j,k)
             
+            % The time rate of change of psi(k,j), therefore, is this
+            % divided by the bin area,
+            % (1/tau) * OMEGA(i,j) * Psi(i,j) * dA(i,j) * F(i,j,k) / dA(k,j)
+            dpsi = (1/WAVES.tau) * WAVES.Omega(r1,h1) * FSTD.psi(r1,h1)  ;
+            
+            
+            WAVES.In(:,h1) = WAVES.In(:,h1) + dpsi * FSTD.dA(r1,h1) * squeeze(WAVES.F(r1,h1,:)) ./ FSTD.dA(:,h1);
             % And the outgoing is simply Omega/tau * psi
-            WAVES.Out(r1,h1) = (1/WAVES.tau) * WAVES.Omega(r1,h1) * FSTD.psi(r1,h1);
+            WAVES.Out(r1,h1) = dpsi;
             
         end
     end
@@ -201,10 +214,14 @@ end
 
 WAVES.diff = WAVES.In - WAVES.Out;
 
+if abs(sum(WAVES.diff.*FSTD.dA)) > eps
+    disp('asd')
+end
+
 if isnan(WAVES.diff)
     disp('uhoh')
 end
 
 % Keeping track of the volume in the largest floe thickness
-WAVES.V_max_in = FSTD.H_max*sum(WAVES.In(:,end));
-WAVES.V_max_out = FSTD.H_max*sum(WAVES.Out(:,end));
+WAVES.V_max_in = FSTD.H_max*sum(WAVES.In(:,end).*FSTD.dA(:,end));
+WAVES.V_max_out = FSTD.H_max*sum(WAVES.Out(:,end).*FSTD.dA(:,end));

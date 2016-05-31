@@ -205,17 +205,18 @@ for r1 = 1:length(R)
 %             
 %         end
         
- 
+            Kfac(r1,r2,end,end) = rnew^2 / (R(r1)^2 + R(r2)^2); 
+
         % This factor is the ratio of the new area to the incident area
-        Kstar = Kfac(r1,r2,end,end)*R(loc)^2 / (R(r1)^2 + R(r2)^2);
-        
-        % If this factor is greater than one, we have to reduce it. This is
-        % done by assuming that the actual area transfer is smaller, and is
-        % equal to the predicted area rnew^2. 
-        
-        if Kstar > 1
-            Kfac(r1,r2,end,end) = (rnew^2/R(loc)^2);
-        end
+%          Kstar = Kfac(r1,r2,end,end)*R(loc)^2 / (R(r1)^2 + R(r2)^2);
+%         
+%         % If this factor is greater than one, we have to reduce it. This is
+%         % done by assuming that the actual area transfer is smaller, and is
+%         % equal to the predicted area rnew^2. 
+%         
+%         if Kstar > 1
+%             Kfac(r1,r2,end,end) = (rnew^2/R(loc)^2);
+%         end
         
         
     end

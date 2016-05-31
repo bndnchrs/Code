@@ -1,4 +1,5 @@
 function [latSA,Q_open,Q_o,Q_oi,Q_lead,Q_lat,Q_bas] = partition_heat_flux(FSTD,OPTS,THERMO,OCEAN,EXFORC)
+
 % This routine partitions the incoming heat flux Q that is over open water
 % into its components,
 % some of which contribute to lateral melting, some to frazil formation,
@@ -24,13 +25,15 @@ function [latSA,Q_open,Q_o,Q_oi,Q_lead,Q_lat,Q_bas] = partition_heat_flux(FSTD,O
 % First we need to calculate geometric properties of the ice cover
 
 % Ice concentration
-conc = sum_FSTD(FSTD.psi,FSTD.one,0); 
+conc = integrate_FSTD(FSTD.psi,FSTD.one,FSTD.dA,0);     
 
 % This calculates the total lateral surface area of floes in
 % contact with water, per unit grid area. The lateral surface area for a given area
 % of floes of size r,h is n(r,h) * 2 * pi * h * r. This is equal to f(r,h)
 % * 2 * h / r.
-latSA = sum_FSTD(FSTD.psi,2*bsxfun(@rdivide,FSTD.meshHmid,FSTD.Rmid'),0);
+
+% CORRECT CODE
+latSA = integrate_FSTD(FSTD.psi,2*FSTD.meshHmid./FSTD.meshRmid,FSTD.dA,0);
 
 % If the surface area is in fact zero, we set it to be Inf. This is because
 % we end up dividing by it later when taking the tendencies.
@@ -111,12 +114,17 @@ if conc < eps
     
 end
 
+%%
 if THERMO.fixQ
-    
+        
     % Just divide the fixed heat flux into open water and ice components
+    
+    
     rat = Ao / (Ao + Al);
     
-    if Ao+Al <= 1e-6
+   
+    
+    if (Ao+Al <= 1e-6)
         % In the case in which there is no open water, so that no heat
         % comes into the ocean in this way, we still need to get the heat
         % in, since we're fixing it. To do this we set the ratio so that
@@ -129,12 +137,26 @@ if THERMO.fixQ
         
     end
     
+    
     Q_o =  rat * EXFORC.Q_oc; 
-    Q_lead = (1 - rat) * EXFORC.Q_oc*Al; 
+    Q_lead = (1 - rat) * EXFORC.Q_oc; 
     
+    if ~OCEAN.DO && Q_o > 0
+        
+        % If we don't have a way to heat the ocean, and we are heating the
+        % ice, then all of the heat is used to melt ice
+        Q_lead = Q_lead + Q_o;
+        Q_o = 0;
+        Al = Al + Ao;
+        Ao = 0; 
+        rat = 0; 
+        
+    end
+   
 
-    
 end
+
+%%
 
 % The heat flux that goes to the lateral edges of floes is then lbrat
 % multiplied by the total lead heat flux. This is the net heat flux that
@@ -145,6 +167,6 @@ Q_lat = Q_lead * lbrat;
 % of ice, per square meter of grid. 
 Q_bas = Q_lead - Q_lat;
 
-if THERMO.fixQ
-    Q_bas = Q_bas + (1 - rat) * EXFORC.Q_oc*(1-Al - Ao); 
-end
+% if THERMO.fixQ
+%     Q_bas = Q_bas + (1 - rat) * EXFORC.Q_oc*(1-Al - Ao); 
+% end

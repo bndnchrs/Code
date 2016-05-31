@@ -14,7 +14,8 @@ if FSTD.DO
     DIAG.FSTD = struct();
     
     % Diagnostics for general FSTD. We may add as we go.
-    
+    DIAG.FSTD.R = FSTD.Rint; 
+    DIAG.FSTD.H = FSTD.H; 
     
     %% Multi-dimensional diagnostics
     
@@ -99,6 +100,7 @@ if ADVECT.DO
     
     dum_diag = zeros(1,OPTS.nt+1);    
     DIAG.ADVECT.diffnet = dum_diag; 
+    DIAG.ADVECT.FSTD_in = ADVECT.FSTD_in; 
     
 end
 

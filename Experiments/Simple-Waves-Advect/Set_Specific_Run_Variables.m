@@ -3,9 +3,9 @@ function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT]  = Set_Specific_
 % In order to validate a process, it must be added to this call here
 
 FSTD.DO = 1; % Do the main model stuff
-OCEAN.DO = 1; % Whether or not to use the ocean model. 
+OCEAN.DO = 0; % Whether or not to use the ocean model. 
 MECH.DO = 0;
-THERMO.DO = 1;
+THERMO.DO = 0;
 WAVES.DO = 1; % Wave Fracture
 ADVECT.DO = 1; % Advection Package
 DIAG.DO = 1; % Diagnostics Package
@@ -13,30 +13,32 @@ DIAG.DO = 1; % Diagnostics Package
 %% Diagnostics Options
 DIAG.DOPLOT = 0; % Plot Diagnostics?
 
-%% Set Thermo Options and External Forcing
-THERMO.fixQ = 1; % Fix the heat flux
+%% Set Waves Options and External Forcing
+EXFORC.wavespec = zeros(OPTS.nt,length(FSTD.Rmid));
 
-Qin = 100; 
+% Pick a swell wave with a peak wavelength near 100 meters
+ind = find(FSTD.Rmid > 100,1); 
 
-THERMO.fixed_Q = Qin + zeros(1,OPTS.nt); % To be Q_fixed
+EXFORC.wavespec(:,ind) = 1; 
 
-%% Set Wave Fracture Options and External Forcing
 
-%% Set Advection Options and External Forcing
+%% Set Advection Options
 
-var = [2.5^2 .125^2];
+var = [5^2 .125^2];
 
-psi = FSTD.meshRmid .^(1); 
-psi(FSTD.meshRmid < 40) = 0;
-psi = psi / sum(psi(:)); 
+psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[100 1.5],var);
+psi = psi/sum(psi(:));
+psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
 
-ADVECT.FSTD_in = .9*psi; 
+ADVECT.FSTD_in = psi/sum(psi(:).*FSTD.dA(:)); 
+
+ADVECT.prescribe_ice_vels = 1; 
 
 OCEAN.UVEL = zeros(2,OPTS.nt); 
-% Velocity at left edge of domain
-OCEAN.UVEL(1,:) = .1;
-% Velocity at right edge of domain
-OCEAN.UVEL(2,:) = .1; 
+
+% UVEL(2) needs to be equal to UVEL(1) unless mechanics is turned on. 
+OCEAN.UVEL(1,:) = 0;
+OCEAN.UVEL(2,:) = 0; 
 
 %% Initial Conditions
 % Initial Distribution has all ice at one floe size. 
@@ -47,5 +49,8 @@ psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[25 1.5],var);
 psi = psi/sum(psi(:));
 psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
 
+psi = 0*psi;
+psi(end,end) = 1;
+
 % Initial concentration is 50%
-FSTD.psi = .5*psi/sum(psi(:));
+FSTD.psi = .5*psi/sum(psi(:).*FSTD.dA(:)); 

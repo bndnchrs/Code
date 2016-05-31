@@ -157,8 +157,38 @@ if DIAG.DO
     FSTD_Diagnostics;
 end
 
-%% Do Plotting
+if mod(FSTD.i,1) == 0
+    
+    % subplot(121)
+    % imagesc(FSTD.Rint,FSTD.H,log10(FSTD.psi+eps));
+    %     set(gca,'clim',[-4 0])
+    %       loglog(FSTD.Rint,sum(FSTD.psi,2));
+    %       hold on
+    %       loglog(FSTD.Rint,sum(ADVECT.FSTD_in,2),'--k');
+    %       hold off
+    %     ylim([1e-5 1])
+    %     subplot(222)
+    %     plot(DIAG.FSTD.conc)
+    %     subplot(224)
+    
+    subplot(121)
+    plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'-b')
+    
+    tau = EXFORC.Q_oc / (OPTS.L_f * OPTS.rho_ice);
+    
+    analytic = DIAG.FSTD.Vtot(1) - tau * DIAG.FSTD.time(1:FSTD.i);
+    analytic(analytic < 0) = 0;
+    
+    hold on
+    plot(DIAG.FSTD.time(1:FSTD.i)/86400,analytic,'--k')
+    hold off
+    
+    subplot(222)
+    plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.conc(1:FSTD.i));
+    subplot(224)
+    plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmean(1:FSTD.i));
+    
+    
+end
 
-FD_timestep_plot; 
-
-
+drawnow

@@ -24,10 +24,6 @@ if ~isfield(FSTD,'psi')
     
 end
 
-% The distribution of psi is equal to the total fractional area per floe size,
-% and has units of area / m^2 / m^2. This is important to remember!!!!
-FSTD.psi_spec = FSTD.psi ./ FSTD.dA;
-
 % A matrix of ones
 FSTD.one = 0*FSTD.psi + 1;
 
@@ -40,10 +36,10 @@ FSTD.opening = 0;
 FSTD.eflag = 0; % Flag for when we run into error
 
 % The Number distribution
-FSTD.NumberDist = FSTD.psi./(pi*FSTD.meshR.^2);
+FSTD.NumberDist = FSTD.psi./(pi*FSTD.meshRmid.^2);
 
 % Open Water and Ice Concentration
-FSTD.conc = sum_FSTD(FSTD.psi,FSTD.one,0);
+FSTD.conc = integrate_FSTD(FSTD.psi,FSTD.one,FSTD.dA,0);
 
 FSTD.phi = 1 - FSTD.conc;
 

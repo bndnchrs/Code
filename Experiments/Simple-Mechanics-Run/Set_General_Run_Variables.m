@@ -15,8 +15,8 @@ ADVECT = struct();
 
 
 % Set General options
-OPTS.nt = 1000; % Number of timesteps
-OPTS.dt = 86400; % Timestep duration
+OPTS.nt = 20; % Number of timesteps
+OPTS.dt = 1e5; % Timestep duration
 OPTS.nh = 13; % No. of thickness categories 
 
 DH = .2; % Thickness increment (m)
@@ -27,8 +27,8 @@ OPTS.time = linspace(OPTS.dt,OPTS.nt*OPTS.dt,OPTS.nt);
 % Initial discretization. Spaced at spacing to guarantee conservation of
 % volume using mechanics. 
 
-FSTD.Rint(1) = .5;
-for i = 2
+FSTD.Rint(1) = 5;
+for i = 2:50
     FSTD.Rint(i) = sqrt(2*FSTD.Rint(i-1)^2 - (4/5) * FSTD.Rint(i-1)^2);
 end
 

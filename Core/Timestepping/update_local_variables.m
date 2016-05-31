@@ -6,8 +6,8 @@
 
 
 % Marginal Distributions
-FSTD.FSD = sum(FSTD.psi,2);
-FSTD.ITD = sum(FSTD.psi,1);
+FSTD.FSD = sum(bsxfun(@times,FSTD.psi,FSTD.dH),2);
+FSTD.ITD = sum(bsxfun(@times,FSTD.psi,FSTD.dR'),1);
 
 % How much time left to go in the timestep
 OPTS.dt_sub = OPTS.dt_sub - OPTS.dt_temp;
@@ -15,6 +15,8 @@ OPTS.dt_sub = OPTS.dt_sub - OPTS.dt_temp;
 % Counter of sub-cycles, both per global timestep and in totality
 OPTS.numSC = OPTS.numSC + 1;
 OPTS.totnum = OPTS.totnum + 1;
+
+%%
 
 % How much volume is in the largest floe class.
 FSTD.V_max = FSTD.V_max + OPTS.dt_temp*FSTD.dV_max;
@@ -26,25 +28,25 @@ if abs(FSTD.V_max) < 1e-8 % && sum(FSTD.ITD(1:end-1).*FSTD.H) < eps
     FSTD.V_max = 0; 
     FSTD.H_max = FSTD.H_max_i;
     FSTD.A_max = 0; 
-    if sum(FSTD.ITD.*FSTD.H) < eps
+    if integrate_FSTD(FSTD.ITD,FSTD.H,FSTD.dH,0) < eps
     FSTD.psi = 0*FSTD.psi; 
     end
 else
-    FSTD.A_max = sum(FSTD.psi(:,end));
+    FSTD.A_max = integrate_FSTD(FSTD.psi(:,end),1,FSTD.dA(:,end),0);
 end
 
-if FSTD.H_max > 10 && FSTD.A_max < 1e-6
-    disp('H_max is too huge. This is likely just an I.C. issue. Deleting the ice area there.')
-    disp('If this message re-appears a bunch, need to examine the code.')
-    disp(['Timestep ' num2str(FSTD.i)])    
-    FSTD.psi(:,end) = 0; 
-    FSTD.A_max = 0; 
-    FSTD.V_max = 0; 
-end
+% if FSTD.H_max > 10 && FSTD.A_max < 1e-6
+%     disp('H_max is too huge. This is likely just an I.C. issue. Deleting the ice area there.')
+%     disp('If this message re-appears a bunch, need to examine the code.')
+%     disp(['Timestep ' num2str(FSTD.i)])    
+%     FSTD.psi(:,end) = 0; 
+%     FSTD.A_max = 0; 
+%     FSTD.V_max = 0; 
+% end
 
 
 % The mean thickness is equal to the sum of the 
-FSTD.Hmean = sum_FSTD(FSTD.psi,FSTD.Hmid,1);
+FSTD.Hmean = integrate_FSTD(FSTD.psi,FSTD.Hmid,FSTD.dA,1);
 
 if FSTD.Hmean == 0
     FSTD.Hmean = OPTS.h_p;
@@ -74,7 +76,6 @@ FSTD.H_max = FSTD.V_max / (Ameps + FSTD.A_max);
 if FSTD.H_max == 0
     FSTD.H_max = FSTD.H_max_i; 
 end
-
 
 %% We need to correct for changes to the thickest class of ice. 
 
@@ -110,8 +111,7 @@ if size(FSTD.H,2) > 1 && FSTD.H_max < FSTD.H(end)
     
 end
 
-%%
-FSTD.psi_spec = FSTD.psi ./ FSTD.dA; 
+
 
 % now update the time!
 

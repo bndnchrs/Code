@@ -108,7 +108,7 @@ if FSTD.DO
     %%
     
     % Ridging and rafting matrices
-    MECH.gamma_raft = calc_gamma_raft_FD([FSTD.H FSTD.H_max],FSTD.meshH,MECH.H_raft);
+    MECH.gamma_raft = calc_gamma_raft_FD(FSTD.Hmid,FSTD.meshHmid,MECH.H_raft);
     MECH.gamma_ridge = 1 - MECH.gamma_raft;
     
     
@@ -172,7 +172,7 @@ if FSTD.DO
                 end
                 
                 [MECH.S_R_raft,MECH.S_H_raft,MECH.Kfac_raft,MECH.Prob_Interact_raft] = ...
-                    calc_sizes_raft_FD(FSTD.R,MECH.r_raft,OPTS.A_tot,[FSTD.H FSTD.H_max],MECH.dont_guarantee_bigger,MECH.use_old_interactions);
+                    calc_sizes_raft_FD(FSTD.R,MECH.r_raft,OPTS.A_tot,FSTD.Hmid,MECH.dont_guarantee_bigger,MECH.use_old_interactions);
                 
                 S_R_raft = MECH.S_R_raft;
                 S_H_raft = MECH.S_H_raft;
@@ -200,7 +200,7 @@ if FSTD.DO
                 
                 if exist('D4_Ridging','var') && D4_Ridging == 1
                     [MECH.S_R_ridge,MECH.S_H_ridge,MECH.Kfac_ridge,MECH.Prob_Interact_ridge] = ...
-                        calc_sizes_ridge_FD_2(FSTD.R,OPTS.A_tot,[FSTD.H FSTD.H_max],MECH.dont_guarantee_bigger,MECH.use_old_interactions);
+                        calc_sizes_ridge_FD_2(FSTD.R,OPTS.A_tot,FSTD.Hmid,MECH.dont_guarantee_bigger,MECH.use_old_interactions);
                     
                     S_R_ridge = MECH.S_R_ridge;
                     S_H_ridge = MECH.S_H_ridge;
@@ -212,7 +212,7 @@ if FSTD.DO
                 else
                     
                     [MECH.S_R_ridge,MECH.S_H_ridge,MECH.Kfac_ridge,MECH.Prob_Interact_ridge] = ...
-                        calc_sizes_ridge_FD(FSTD.R,MECH.r_ridge,OPTS.A_tot,MECH.k_ridge,[FSTD.H FSTD.H_max],MECH.dont_guarantee_bigger,MECH.use_old_interactions);
+                        calc_sizes_ridge_FD(FSTD.R,MECH.r_ridge,OPTS.A_tot,MECH.k_ridge,FSTD.Hmid,MECH.dont_guarantee_bigger,MECH.use_old_interactions);
                     
                     S_R_ridge = MECH.S_R_ridge;
                     S_H_ridge = MECH.S_H_ridge;

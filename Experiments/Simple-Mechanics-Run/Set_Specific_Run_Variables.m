@@ -14,20 +14,20 @@ DIAG.DO = 1; % Diagnostics Package
 DIAG.DOPLOT = 0; % Plot Diagnostics?
 
 %% Set Mechanics Options and External Forcing
-EXFORC.nu = -1e-8 * ones(OPTS.nt,2); 
+EXFORC.nu = -(1/(30*86400)) * ones(OPTS.nt,2); 
 EXFORC.nu(:,2) = 0; 
 
 %% Initial Conditions
 % Initial Distribution has all ice at one floe size. 
-var = [2.5^2 .125^2];
-% Make a Gaussian at thickness 1.5 m and size 25 m with variance var.
+var = [15^2 .5^2];
+% Make a Gaussian at thickness 1.5 m and size 50 m with variance var.
 
-psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[25 1.5],var);
+psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[50 1],var);
 psi = psi/sum(psi(:));
 psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
+% psi = psi ./ FSTD.dA;  
 
-psi = zeros(size(psi)); 
-psi(1,1:end) = 1; 
+ update_grid; 
 
-% Initial concentration is 50%
-FSTD.psi = .5*psi/sum(psi(:));
+% Initial concentration is 100%
+FSTD.psi = psi/integrate_FSTD(psi,1,FSTD.dA,0);

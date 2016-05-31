@@ -5,7 +5,7 @@ function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT]  = Set_Specific_
 FSTD.DO = 1; % Do the main model stuff
 OCEAN.DO = 1; % Whether or not to use the ocean model. 
 MECH.DO = 0;
-THERMO.DO = 1;
+THERMO.DO = 0;
 WAVES.DO = 1; % Wave Fracture
 ADVECT.DO = 1; % Advection Package
 DIAG.DO = 1; % Diagnostics Package
@@ -14,23 +14,24 @@ DIAG.DO = 1; % Diagnostics Package
 DIAG.DOPLOT = 0; % Plot Diagnostics?
 
 %% Set Thermo Options and External Forcing
-THERMO.fixQ = 1; % Fix the heat flux
-
-Qin = 100; 
-
-THERMO.fixed_Q = Qin + zeros(1,OPTS.nt); % To be Q_fixed
 
 %% Set Wave Fracture Options and External Forcing
+WAVES.bandwidth = 25; 
+WAVES.epscrit = 3e-5; 
+WAVES.dobennetts = 1; 
 
 %% Set Advection Options and External Forcing
 
 var = [2.5^2 .125^2];
 
-psi = FSTD.meshRmid .^(1); 
-psi(FSTD.meshRmid < 40) = 0;
+psi = FSTD.meshRmid .^(0); 
+psi(FSTD.meshRmid < 400) = 0;
 psi = psi / sum(psi(:)); 
 
-ADVECT.FSTD_in = .9*psi; 
+ADVECT.FSTD_in = psi; 
+ADVECT.prescribe_ice_vels = 1;
+ADVECT.stressreducer = .1; 
+
 
 OCEAN.UVEL = zeros(2,OPTS.nt); 
 % Velocity at left edge of domain
@@ -43,9 +44,8 @@ OCEAN.UVEL(2,:) = .1;
 var = [2.5^2 .125^2];
 % Make a Gaussian at thickness 1.5 m and size 25 m with variance var.
 
-psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[25 1.5],var);
-psi = psi/sum(psi(:));
-psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
+psi = FSTD.meshRmid .^(-1); 
+psi = psi / sum(psi(:)); 
 
 % Initial concentration is 50%
-FSTD.psi = .5*psi/sum(psi(:));
+FSTD.psi = psi/sum(psi(:));

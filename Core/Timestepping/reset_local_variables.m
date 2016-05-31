@@ -6,11 +6,10 @@ if FSTD.DO
    
    FSTD.diff = 0*FSTD.diff; 
    FSTD.opening = 0*FSTD.opening; 
-   FSTD.V_max = sum(FSTD.psi(:,end))*FSTD.H_max;
-   FSTD.NumberDist = FSTD.psi./(FSTD.meshR.^2);
+   FSTD.V_max = integrate_FSTD(FSTD.psi(:,end),FSTD.meshHmid(:,end),FSTD.dA(:,end),0);
+   FSTD.NumberDist = FSTD.psi./(pi*FSTD.meshRmid.^2);
    FSTD.V_max_in = 0;
    FSTD.V_max_out= 0; 
-   FSTD.psi_spec = FSTD.psi ./ FSTD.dA; 
    
 end
 

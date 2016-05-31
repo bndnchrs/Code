@@ -12,13 +12,13 @@ if FSTD.DO
     DIAG.FSTD.diff(:,:,diag_ind) = FSTD.diff; % The total change per timestep for all components
     DIAG.FSTD.time(diag_ind) = FSTD.time_now; % The model time
     DIAG.FSTD.numSC(diag_ind) = OPTS.numSC; % The total number of sub-intervals in each timestep
-    DIAG.FSTD.conc(diag_ind) = sum_FSTD(FSTD.psi,FSTD.one,0); % The ice concentration at each timestep
-    DIAG.FSTD.Rmeanarea(diag_ind) = sum_FSTD(FSTD.psi,FSTD.Rmid',1); % The mean floe size (area-weighted,normalized)
-    DIAG.FSTD.Rmeannum(diag_ind) = sum_FSTD(FSTD.NumberDist,FSTD.Rmid',1); % The mean floe size (number-weighted,normalized)
-    DIAG.FSTD.Hmean(diag_ind) = sum_FSTD(FSTD.psi,FSTD.Hmid,1); % The mean ice thickness (area-weighted, normalized)
-    DIAG.FSTD.Vtot(diag_ind) = sum_FSTD(FSTD.psi,FSTD.Hmid,0); % The total ice volume (area-weighted)
+    DIAG.FSTD.conc(diag_ind) = integrate_FSTD(FSTD.psi,FSTD.one,FSTD.dA,0); % The ice concentration at each timestep
+    DIAG.FSTD.Rmeanarea(diag_ind) = integrate_FSTD(FSTD.psi,FSTD.Rmid',FSTD.dA,1); % The mean floe size (area-weighted,normalized)
+    DIAG.FSTD.Rmeannum(diag_ind) = integrate_FSTD(FSTD.NumberDist,FSTD.Rmid',FSTD.dA,1); % The mean floe size (number-weighted,normalized)
+    DIAG.FSTD.Hmean(diag_ind) = integrate_FSTD(FSTD.psi,FSTD.Hmid,FSTD.dA,1); % The mean ice thickness (area-weighted, normalized)
+    DIAG.FSTD.Vtot(diag_ind) = integrate_FSTD(FSTD.psi,FSTD.Hmid,FSTD.dA,0); % The total ice volume (area-weighted)
     DIAG.FSTD.Hmax(diag_ind) = FSTD.H_max; % The mean ice thickness (area-weighted, normalized)
-    DIAG.FSTD.Amax(diag_ind) = sum(FSTD.psi(:,end)); % Maximum Ice Thickness Category Area
+    DIAG.FSTD.Amax(diag_ind) = integrate_FSTD(FSTD.psi(:,end),1,FSTD.dA(:,end),0); % Maximum Ice Thickness Category Area
     
 end
 

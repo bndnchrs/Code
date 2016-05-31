@@ -14,6 +14,17 @@ if ~isfield(OCEAN,'UVEL')
     OCEAN.UVEL =  zeros(2,OPTS.nt); 
 end
 
+if ~isfield(ADVECT,'prescribe_ice_vels')
+    % Whether we will prescribe how fast the ice moves using the UVEL
+    % fields from the ocean.
+    ADVECT.prescribe_ice_vels = 0; 
+end
+
+if ~isfield(ADVECT,'stressreducer')
+    % Reducing applies velocities to ice velocities
+    ADVECT.stressreducer = .1; 
+
+end
 if ~isfield(ADVECT,'FSTD_in')
     % This is the FSTD of the ice on the western boundary
     ADVECT.FSTD_in = 0 * FSTD.meshR + 1/numel(FSTD.meshR);

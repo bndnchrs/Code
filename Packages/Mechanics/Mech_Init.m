@@ -132,8 +132,17 @@ intstr = ([OPTS.path_of_code 'Packages/' intstr]);
 %%
 
 try
+    if ~isfield(MECH,'try_to_load')
+        
+        loadstr = 'THISISNOTAFILE';
+        
+    else
+        
+        loadstr = intstr;
     
-    load(intstr)
+    end
+    
+    load(loadstr)
     fprintf('Was able to find an interaction scheme matching the initial conditions \n')
     
     if MECH.rafting
@@ -229,6 +238,7 @@ catch errloading
         
         % Not sure what this error may be
         throw(errloading)
+        
     end
     
 end

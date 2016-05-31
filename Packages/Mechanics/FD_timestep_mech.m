@@ -54,10 +54,18 @@ for r1 = 1:length(FSTD.Rmid)
                     % category, there is a correction that needs to be made to
                     % conserve volume, since this thickness can change.
                     if ridge_loc_h == length(FSTD.Hmid)
-                        correct_Hmax_ridge = FSTD.H_max_i/FSTD.H_max;
+                    
+                        if FSTD.H_max ~= 0
+                            correct_Hmax_ridge = FSTD.H_max_i/FSTD.H_max;
+                        else
+                            correct_Hmax_ridge = 1;
+                        end
+                        
                     else
                         correct_Hmax_ridge = 1;
                     end
+                    
+                    
                 end
                 
                 if MECH.rafting
@@ -65,7 +73,11 @@ for r1 = 1:length(FSTD.Rmid)
                     
                     % Same thing for rafting
                     if raft_loc_h == length(FSTD.Hmid)
-                        correct_Hmax_raft = FSTD.H_max_i/FSTD.H_max;
+                        if FSTD.H_max ~= 0
+                            correct_Hmax_raft = FSTD.H_max_i/FSTD.H_max;
+                        else
+                            correct_Hmax_raft = 1;
+                        end
                     else
                         correct_Hmax_raft = 1;
                     end

@@ -38,7 +38,7 @@
 
 if MECH.rafting
     
-    MECH.corr_hmax_raft = FSTD.H_max_i/FSTD.H_max * MECH.hmax_flag_raft ... 
+    MECH.corr_hmax_raft = (FSTD.H_max_i / FSTD.H_max) * MECH.hmax_flag_raft ... 
     + 1 * (1 - MECH.hmax_flag_raft); 
     
     MECH.Out_raft = many_mult( ...
@@ -72,7 +72,7 @@ end
 
 if MECH.ridging
     
-    MECH.corr_hmax_ridge = FSTD.H_max_i/FSTD.H_max * MECH.hmax_flag_ridge ... 
+    MECH.corr_hmax_ridge = (FSTD.H_max_i / FSTD.H_max) * MECH.hmax_flag_ridge ... 
     + 1 * (1 - MECH.hmax_flag_ridge); 
     
     MECH.Out_ridge = many_mult( ...
@@ -81,7 +81,9 @@ if MECH.ridging
         permute(MECH.Prob_Interact_ridge,[1 3 2 4]), ...
         permute(MECH.gamma_ridge,[3 1 4 2]),...
         permute(FSTD.NumberDist,[1 2 3 4]), ...
-        permute(FSTD.NumberDist,[3 4 1 2]) ...
+        permute(FSTD.NumberDist,[3 4 1 2]), ...
+        permute(FSTD.dA,[1 2 3 4]), ...
+        permute(FSTD.dA,[3 4 1 2]) ...
         );
     
     MECH.In_ridge_coeff = many_mult( ...
@@ -91,7 +93,9 @@ if MECH.ridging
         permute(MECH.Prob_Interact_ridge,[1 3 2 4]), ... 
         permute(FSTD.NumberDist,[1 2 3 4]), ...
         permute(FSTD.NumberDist,[3 4 1 2]), ...
-        permute(MECH.corr_hmax_ridge,[1 2 3 4]) ...
+        permute(MECH.corr_hmax_ridge,[1 2 3 4]), ...
+        permute(FSTD.dA,[1 2 3 4]), ...
+        permute(FSTD.dA,[3 4 1 2]) ...
         );
     
     % Accumulate all entries in In_raft_coeff, and put them in position
@@ -115,37 +119,65 @@ MECH.Out_ridge = sum(sum(MECH.Out_ridge,3),4);
 MECH.In = MECH.In_raft + MECH.In_ridge;
 MECH.Out = MECH.Out_raft + MECH.Out_ridge;
 
-if sum(MECH.In(:)) > sum(MECH.Out(:))
+MECH.diff = MECH.In - MECH.Out;
+
+if integrate_FSTD(MECH.diff,FSTD.Hmid,1,0) > 1e-8
     error('Creating Volume, In > Out')
 end
 
-MECH.diff = MECH.In - MECH.Out;
 MECH.diff_raft = MECH.In_raft - MECH.Out_raft;
 MECH.diff_ridge = MECH.In_ridge - MECH.Out_ridge;
 
+
+%% Next we want to control how this redistribution affects the thickest
+% class of floes. 
+
+% First we figure out what the thickness of the ice in that category should
+% be given the interactions occuring only between floes in that thickest
+% category
+
+% This is the change in volume in that category because of changes in area
+MECH.V_max_change = sum(MECH.Out(:,end).*FSTD.meshHmid(:,end));
+% This is the area of floes that are deformed in that category
+MECH.A_max_change_out = sum(MECH.Out(:,end));
+% This is the area of floes that are now formed
+MECH.A_max_change_in = sum(MECH.In(:,end));
+% This is the "thickness" of those new floes. 
+MECH.H_max_change = FSTD.Hmid(end) * (MECH.A_max_change_out / MECH.A_max_change_in);
+
+% This is the amount of volume that becomes these floes due to the
+% interactions between thinner floes. 
+MECH.A_max_in = integrate_FSTD(MECH.diff(:,1:end-1),1,1,0);
+MECH.V_max_coll = integrate_FSTD(MECH.diff(:,1:end-1),FSTD.meshHmid(:,1:end-1),1,0);
+
+MECH.H_max_new = (MECH.V_max_change + MECH.V_max_coll)/(MECH.A_max_in + MECH.A_max_change_in); 
+
+%% MECH.diff is the time rate of change of f(r,h) dr dh. The sum over 
+% MECH.diff is now the total time rate of change of ice concentration. 
+% It has to be normalized to be -1 at this point, after which we will
+% switch back to a tendency for f(r,h). 
+
 % This is an ad-hoc way of doing the normalization, but fine here since
 % the Kernel is normalized. If In = Out, use eps to make diff = 0.
-sum(MECH.diff(:));
-sum(abs(MECH.diff(:)));
 diffeps = 0;
 
 if sum(sum(abs(MECH.diff))) == 0
     diffeps = eps;
 end
 
+% diff_mech is the ridging mode and much be normalized to -1
+% It tells how much area must be redistributed. 
+% Remember MECH.diff right now is df/dt * dr * dh
+normalizer = integrate_FSTD(MECH.diff,1,1,0)+ diffeps;
 
-% diff_mech is the ridging mode and is normalized to -1
-% It tells how much area must be redistributed.
-normalizer = sum(sum(MECH.diff)) + diffeps;
-
-MECH.diff = -MECH.diff / normalizer;
+% Now we divide by dA, so that sum(MECH.diff.*FSTD.dA) = -1; 
+MECH.diff = -MECH.diff ./ (normalizer * FSTD.dA);
+MECH.In = -MECH.mag*MECH.alpha_c*MECH.In ./ (normalizer*FSTD.dA);
+MECH.Out = -MECH.mag*MECH.alpha_c*MECH.Out ./ (normalizer * FSTD.dA);
 
 %% Now we consider how the opening due to divergence effects the FSTD
 MECH.opening_coll = .5*(MECH.mag - MECH.eps_I);
 MECH.opening_div = MECH.mag*MECH.alpha_0;
-
-MECH.In = - MECH.mag*MECH.alpha_c*MECH.In / normalizer;
-MECH.Out = - MECH.mag*MECH.alpha_c*MECH.Out / normalizer;
 
 % Here is the "convergent mode" part of the total change in ice
 % partial concentrations, which tells how much redistribution is
@@ -160,14 +192,31 @@ MECH.diff = MECH.mag*MECH.alpha_c*MECH.diff;
 % this category to reflect these changes
 % On the other hand, area has been correctly reported to all floe
 % sizes.
-MECH.V_max_in = -integrate_FSTD(MECH.diff(:,1:end-1),FSTD.Hmid(1:end-1),FSTD.dA(:,1:end-1),0);
+
+% This is the amount of ice volume moved to the thickest ice class by
+% collisions between floes outside of that class
+
+MECH.V_max_in = -integrate_FSTD(MECH.diff(:,1:end-1),FSTD.meshHmid(:,1:end-1),FSTD.dA(:,1:end-1),0);
+% This is ice with thickness FSTD.H_mid(end)
+
+% Now we deal with what happens inside that category
+% This is the total volume of ice that is fluxed out of this category of
+% ice thickness (into the same category)
+
+
+
+% if MECH.A_max_in > 0
+%  
+%     MECH.H_max_in = MECH.V_max_in / MECH.A_max_in; 
+% 
+% end
 
 % If there just isn't sufficient ice, we don't do anything
-if sum(FSTD.psi(:)) <= 1e-8
+if sum(FSTD.psi(:).*FSTD.dA(:)) <= 1e-8
     MECH.diff = 0*FSTD.psi;
     MECH.opening = 0;
     diffeps = eps;
-    FSTD.psi = 0*psi;
+    FSTD.psi = 0*FSTD.psi;
     FSTD.openwater = 1;
 end
 
@@ -206,7 +255,7 @@ end
 
 if ~ADVECT.DO
 
-MECH.diffadv = (FSTD.psi/(sum(sum(FSTD.psi))+diffeps))*MECH.divopening*MECH.convdiv;
+MECH.diffadv = (FSTD.psi/(sum(sum(FSTD.psi))+diffeps))*MECH.divopening*MECH.convdiv.*FSTD.dA;
 
 else
     
@@ -216,11 +265,13 @@ end
 
 % Here is the amount of ice volume which is lost from the largest
 % thickness category due to divergenceH
-MECH.V_max_out = FSTD.H_max*sum(MECH.diffadv(:,end));
+MECH.V_max_out = FSTD.H_max*sum(MECH.diffadv(:,end).*FSTD.dA(:,end));
 
-if MECH.V_max_in*OPTS.dt/FSTD.H_max < 1e-8
-    MECH.V_max_in = 0;
-end
+% if MECH.V_max_in*OPTS.dt/FSTD.H_max < 1e-8
+%     MECH.V_max_in = 0;
+%     MECH.A_max_in = 0; 
+%     MECH.diff(:,end) = 0;  
+% end
 
 if MECH.V_max_out < eps
     MECH.V_max_out = 0;
@@ -231,4 +282,4 @@ end
 MECH.diff_noadv = MECH.diff;
 MECH.diff = MECH.diff - MECH.diffadv;
 
-MECH.opening = -sum(MECH.diff(:));
+MECH.opening = integrate_FSTD(MECH.diff,1,FSTD.dA,0);

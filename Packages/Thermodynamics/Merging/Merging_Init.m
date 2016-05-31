@@ -5,7 +5,6 @@ if FSTD.DO
         % r x deltamerge
         THERMO.deltamerge = 5; 
     end
-    
-    
+      
     
 end

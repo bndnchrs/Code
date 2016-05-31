@@ -19,7 +19,7 @@ end
 %% Re-set concentration, etc
 
 % Reset the open water and concentration
-FSTD.conc = sum_FSTD(FSTD.psi,FSTD.one,0); 
+FSTD.conc = integrate_FSTD(FSTD.psi,FSTD.one,FSTD.dA,0); 
 FSTD.openwater = 1 - FSTD.conc;
 
-FSTD.NumberDist = FSTD.psi./(pi*FSTD.meshR.^2);
+FSTD.NumberDist = FSTD.psi./(pi*FSTD.meshRmid.^2);

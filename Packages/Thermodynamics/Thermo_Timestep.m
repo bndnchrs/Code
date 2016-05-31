@@ -41,7 +41,7 @@ if THERMO.Q_o < 0 && ~OCEAN.DO
     % If we are freezing, and we aren't simulating the ocean, we just add
     % ice at the surface of the ocean in a simple way.
     
-    THERMO.pancakes = -THERMO.Q_o / (OPTS.L_f * OPTS.rho_ice * FSTD.Hmid(THERMO.panloc_h));
+    THERMO.pancakes = -THERMO.Q_o / (OPTS.L_f * OPTS.rho_ice * FSTD.Hmid(THERMO.panloc_h) * FSTD.dA(THERMO.panloc_r,THERMO.panloc_h));
 
 else
     
@@ -141,6 +141,7 @@ end
 % drdt, dhdt set up advective tendencies in size and thickness space. We
 % turn these into matrices of size of FSTD.psi. 
 % Advective Tendencies
+
 v_r = repmat(THERMO.drdt,size(FSTD.psi));
 v_h = repmat(THERMO.dhdt,[length(FSTD.Rint),1]);
 
@@ -148,7 +149,7 @@ v_h = repmat(THERMO.dhdt,[length(FSTD.Rint),1]);
 % volume and area as in Hibler (1980). It does this by calculating terms
 % like df(r) = v_r(r) * f(r) where r represent the edges of each box and
 % f(r) is the spectrum (units 1/m^2) and not psi itself. 
-[THERMO.adv_tend,THERMO.meltoutR,THERMO.meltoutH] = advect2_upwind(FSTD.psi,FSTD.Rint,FSTD.H,FSTD.dR,FSTD.dH,v_r,v_h,OPTS.dt_sub,THERMO.allow_adv_loss_R,THERMO.allow_adv_loss_H);
+[THERMO.adv_tend,THERMO.meltoutR,THERMO.meltoutH] = advect2_upwind(FSTD.psi,FSTD.dA,FSTD.Rint,FSTD.H,FSTD.dR,FSTD.dH,v_r,v_h,THERMO.allow_adv_loss_R,THERMO.allow_adv_loss_H);
 
 % Make sure we aren't advecting and dividing by infinity somehow
 
@@ -165,7 +166,7 @@ end
 THERMO.diff = THERMO.adv_tend + THERMO.pancake_growth + THERMO.edgegrowth;
 
 % The opening is the sum of the difference, naturally
-THERMO.opening = -sum(THERMO.diff(:));
+THERMO.opening = -sum(THERMO.diff(:).*FSTD.dA(:));
 
 
 %% Handle volume losses at the thickest floe size category
@@ -192,7 +193,7 @@ THERMO.opening = -sum(THERMO.diff(:));
 % volume changes to existing thickest ice. 
 
 %if ~isempty(FSTD.H) && sum(THERMO.adv_tend(:,end))>0
-    THERMO.dV_max_adv = sum(THERMO.adv_tend(:,end)*FSTD.H_max) ;
+    THERMO.dV_max_adv = sum(THERMO.adv_tend(:,end).*FSTD.dA(:,end)*FSTD.H_max) ;
 %else
     % There is no advective flux between thickness classes as there are no
     % thickness classes
@@ -203,14 +204,14 @@ THERMO.opening = -sum(THERMO.diff(:));
 %%
 % Added volume in freezing/melting directly to the thickess ice class is
 % equal to dhdt * psi(r,h_max).
-THERMO.dV_max_basal = sum(FSTD.psi(:,end)*THERMO.dhdt(:,end));
+THERMO.dV_max_basal = sum(FSTD.psi(:,end).*FSTD.dA(:,end)*THERMO.dhdt(:,end));
 
 % The ice added is accounted for by the edge growth term
-THERMO.dV_max_edge = 2*FSTD.H_max*sum(FSTD.psi(:,end)./FSTD.Rmid')*THERMO.drdt;
+THERMO.dV_max_edge = 2*FSTD.H_max*sum(FSTD.psi(:,end).*FSTD.dA(:,end)./FSTD.Rmid')*THERMO.drdt;
 
 % If there is pancake growth into the largest floe size category, account
 % for that. This is usually untrue. 
-THERMO.dV_max_pancake = sum(THERMO.pancake_growth(:,end)/OPTS.dt_sub)*OPTS.h_p;
+THERMO.dV_max_pancake = sum(THERMO.pancake_growth(:,end).*FSTD.dA(:,end)/OPTS.dt_sub)*OPTS.h_p;
 
 % There may also be loss due to advection out in size space from the
 % smallest size category
