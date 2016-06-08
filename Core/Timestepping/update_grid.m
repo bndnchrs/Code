@@ -50,6 +50,8 @@ else
     FSTD.dR = FSTD.Rint;
 end
 
+
+%%
 % dH is simply the difference between successive intervals of thickness
 FSTD.dH = diff(FSTD.H);
 % Since H_max is the mean thickness of the thickest ice, we assume that it
@@ -61,7 +63,7 @@ FSTD.dH_max = 2*(FSTD.H_max - FSTD.H(end));
 if length(FSTD.H) > 1
     FSTD.dH = [FSTD.dH FSTD.dH_max];
 else
-    FSTD.dH = FSTD.H;
+    FSTD.dH = FSTD.Hmid;
 end
 
 % We run this command to address the fact that the grid can change at each
@@ -97,3 +99,5 @@ end
 FSTD.meshRmid = FSTD.meshRmid';
 FSTD.meshHmid = FSTD.meshHmid';
 FSTD.meshVmid = pi*FSTD.meshRmid.^2 .* FSTD.meshHmid;
+
+

@@ -52,24 +52,21 @@ if FSTD.Hmean == 0
     FSTD.Hmean = OPTS.h_p;
 end
 
-
-
-% if do_Thermo == 1
-%     % There is a thermodynamic contribution to additional volume
-%     V_max = V_max + A_max * dhdt(end) * dt_temp; 
-% end
-
-
-
 Ameps = 0;
 
 if FSTD.A_max == 0
     
     Ameps = eps;
+    FSTD.V_max = 0; 
     
 end
 
-% The top category thickness is simply the ratio of the volume to
+% The top category thickness is simply the ratio of the volume to the
+% concentration
+
+% if FSTD.i == 42
+%     disp('ok')
+% end
 
 FSTD.H_max = FSTD.V_max / (Ameps + FSTD.A_max);
 
@@ -77,37 +74,81 @@ if FSTD.H_max == 0
     FSTD.H_max = FSTD.H_max_i; 
 end
 
+FSTD.Hmid(end) = FSTD.H_max; 
 %% We need to correct for changes to the thickest class of ice. 
 
 % If the thickest ice category decreases in thickness so that it becomes
 % thinner than the right-most boundary of the thickest non-variable ice
 % thickness category, we have to adjust where the ice is. 
 
-
 if size(FSTD.H,2) > 1 && FSTD.H_max < FSTD.H(end)
-    
+ %%   
     % This is the total volume in the thickest ice class (variable) and in
     % the maximum ice thickness category
-    V_i = sum_FSTD(FSTD.psi(:,1:end-1),FSTD.Hmid(1:end-1),0) + FSTD.Hmid(end)*sum(FSTD.psi(:,end));
-    
+    V_i = integrate_FSTD(FSTD.psi,[FSTD.Hmid(1:end-1) FSTD.H_max],FSTD.dA,0); 
+    c_i = integrate_FSTD(FSTD.psi,1,FSTD.dA,0); 
     % For V_max = A * H_max = A' * H_end, this becomes an area A' = A * H_max / H_end
     % Now we add this volume to the smaller thickness category, adjusting
     % it appropriately
-    FSTD.psi(:,end-1) = FSTD.psi(:,end-1) + (FSTD.Hmid(end)/FSTD.Hmid(end-1))*FSTD.psi(:,end);
-    % There is no ice with the highest thickness now
-    FSTD.psi(:,end) = 0; 
-    % The ``highest thickness" is just equal to its initial value
+    % Here is the total amount of ice concentration belonging to this
+    % category
+    
+    % The initial concentration in the thickest category
+
+
+    
+    H0 = FSTD.H_max; 
+    
+    % Now we find the thickness category to which all the ice will go. 
+    [a,b] = find(FSTD.Hmid < H0);
+    ind = b(end); 
+    
+    psi0 =  FSTD.psi(:,end);
+    dA0 = FSTD.dA(:,end);
+    dA1 = FSTD.dA(:,ind); 
+    dA2 = FSTD.dA_i(:,end); 
+    
+    H1 = FSTD.Hmid(ind); 
+    H2 = FSTD.H_mid_max_i; 
+    
+
+    % This area must be transformed in order to conserve volume into ice
+    % of a lower thickness. 
+    
+    % This is done according to the following:
+    % c_i = c(end-1) + c(end)
+    % v_i = c(end-1) * H(end-1) + c(end) * H_i
+    
+    % Where c(end-1) = psi(end-1) * dA(end-1)    
+    % and H_i is the initial maximum sea ice thickness
+    
+    % The solution to this set of equations is
+    % c_1 = (v_i + H_i c_i) / (H(end-1) + H_i)
+    % c_2 = c_i - c_1
+    
+    psi_1 = (psi0 .* dA0 ./ dA1) * (H0 - H2) / (H1 - H2); 
+    psi_2 = (psi0 .* dA0 - psi_1 .* dA1)./dA2; 
+    
+    FSTD.psi(:,ind) = FSTD.psi(:,ind) + psi_1; 
+    FSTD.psi(:,end) = psi_2; 
+    
     FSTD.H_max = FSTD.H_max_i;
     FSTD.Hmid(end) = FSTD.H_mid_max_i; 
     
-    % This is now the total volume of the system. It had better be equal to
-    % the volume before that arrangement
-    V_f = sum_FSTD(FSTD.psi(:,1:end-1),FSTD.Hmid(1:end-1),0) + FSTD.H_max*sum(FSTD.psi(:,end));
-    
+    V_f = integrate_FSTD(FSTD.psi,FSTD.Hmid,FSTD.dA_i,0); 
+    c_f = integrate_FSTD(FSTD.psi,1,FSTD.dA_i,0); 
+
     if abs(V_i - V_f)/V_i > 1e-4
         FSTD.eflag = 1;
         disp('Exchange of Volume at Thickest Size is a Problem')
     end
+    
+    if abs(c_i - c_f)/c_i > 1e-4
+        FSTD.eflag = 1;
+        disp('Exchange of Concentration at Thickest Size is a Problem')
+    end
+    
+    FSTD.dA = FSTD.dA_i; 
     
 end
 

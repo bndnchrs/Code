@@ -29,9 +29,7 @@ for i = 1:OPTS.numruns
     OPTS.run_number = i;
     % Do the damn thing
     DIAG = Drive_FSTD(OPTS); 
-    
-    error('This doesnt cooperate with multiple thickness categories!!!')
-    
+        
 end
 
 tightfig(gcf);

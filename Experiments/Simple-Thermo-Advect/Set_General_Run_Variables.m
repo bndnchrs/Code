@@ -15,12 +15,12 @@ ADVECT = struct();
 
 
 % Set General options
-OPTS.nt = 60; % Number of timesteps
+OPTS.nt = 360; % Number of timesteps
 OPTS.dt = 43200; % Timestep duration
 OPTS.nh = 13; % No. of thickness categories 
 
 
-DH = .2; % Thickness increment (m)
+OPTS.dh = .2; % Thickness increment (m)
 
 % Linearly spaced time vector
 OPTS.time = linspace(OPTS.dt,OPTS.nt*OPTS.dt,OPTS.nt); 
@@ -34,7 +34,7 @@ for i = 2:65
 end
 
 OPTS.nr = length(FSTD.Rint); % Number of size categories
-FSTD.H = .1:DH:2.5; % Thickness Vector
+FSTD.H = .1:OPTS.dh:2.5; % Thickness Vector
 
 OPTS.r_p = .5; % Minimum floe size category
 OPTS.h_p = .1; % Minimum thickness category
@@ -46,7 +46,6 @@ OPTS.h_p = .1; % Minimum thickness category
 
 %% Set General Thermodynamic Options
 THERMO.SHLambda = 0; 
-
 
 %% Set Swell Fracture Options
 OPTS.Domainwidth = 5e4;

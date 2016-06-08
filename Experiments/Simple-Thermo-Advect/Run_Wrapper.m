@@ -32,4 +32,3 @@ for i = 1:OPTS.numruns
     
 end
 
-tightfig(gcf);

@@ -133,13 +133,14 @@ while OPTS.dt_sub > 0
     update_psi;
     
     %% Update those local variables which will change on each timestep
-    
     update_local_variables;
     
     update_grid;
     
     %% Check to make sure the solutions are legal
     check_FD;
+    
+ 
     
     %% If we've thrown an error, lets leave this place
     if FSTD.eflag

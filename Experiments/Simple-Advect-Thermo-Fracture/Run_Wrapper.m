@@ -9,16 +9,17 @@ OPTS = struct();
 
 % This path points to where Drive_FSTD.m is contained
 OPTS.path_of_code = '/Users/Horvat/Research/FSTD-Code/Code/';
-OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/Adv_Therm_Frac/'; 
+OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/Simple-Thermo-Advect-Fracture/'; 
 
 % Add to the path
 addpath([OPTS.path_of_code 'Core/']); 
-mkdir(OPTS.savepath); 
 
 % The total number of runs
 OPTS.numruns = 1; 
 % A list of all the output names of the files we create
-OPTS.names = {'Run1'};
+OPTS.names = {'Example'};
+
+close all
 
 for i = 1:OPTS.numruns
     
@@ -30,3 +31,4 @@ for i = 1:OPTS.numruns
     DIAG = Drive_FSTD(OPTS); 
     
 end
+

@@ -208,17 +208,7 @@ if mod(FSTD.i,1) == 0
     if FSTD.i == 1
         
         hold on
-        tauadvect = OPTS.Domainwidth / ADVECT.v1;
-              
-        V_in = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid,FSTD.dA,0); % The total ice volume (area-weighted)
-        
-        V_init = DIAG.FSTD.Vtot(1);
-             
-        % Compute the advective-only solution
-        V_adv = V_in + exp(1).^(-FSTD.time/tauadvect)*(V_init - V_in);
-        
-        
-        plot(FSTD.time/86400,V_adv,'--','color',cols(1,:),'linewidth',2)
+
         OPTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
         OPTS.h2 = scatter(DIAG.FSTD.time(FSTD.i)/86400,DIAG.FSTD.Vtot(FSTD.i),200,'filled','markerfacecolor',cols(5,:));
         
@@ -248,12 +238,6 @@ if mod(FSTD.i,1) == 0
     
     if FSTD.i == 1
         
-        c0 = integrate_FSTD(ADVECT.FSTD_in,1,FSTD.dA,0);
-        c1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),1,FSTD.dA,0);
-        
-        C_adv = c0 + (c1 - c0) * exp(1).^(-FSTD.time/tauadvect);
-        
-        plot(FSTD.time/86400,C_adv,'--','color',cols(1,:),'linewidth',2)
         hold on
         OPTS.h3 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.conc(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
         grid on
@@ -262,8 +246,6 @@ if mod(FSTD.i,1) == 0
         title('Ice Concentration')
         ylabel('m^2/m^2')
         set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
-        c0 = integrate_FSTD(ADVECT.FSTD_in,1,FSTD.dA,1);
-        plot(FSTD.time/86400,0*FSTD.time + c0,'--k')
         xlim([0 FSTD.time(end)/86400]);
         ylim([0 1])
         
@@ -280,13 +262,6 @@ if mod(FSTD.i,1) == 0
     
     if FSTD.i == 1
         
-        h0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid,FSTD.dA,0);
-        h1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),FSTD.Hmid,FSTD.dA,0);
-        
-        H_adv = h0 + (h1 - h0) * exp(1).^(-FSTD.time/tauadvect);
-        H_adv = H_adv ./ C_adv;
-        
-        plot(FSTD.time/86400,H_adv,'--','color',cols(1,:),'linewidth',2)
         hold on
         OPTS.h4 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmean(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
         
@@ -296,8 +271,6 @@ if mod(FSTD.i,1) == 0
         title('Mean Ice Thickness')
         ylabel('m')
         set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
-        h0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid,FSTD.dA,1);
-        plot(FSTD.time/86400,0*FSTD.time + h0,'--k')
         xlim([0 FSTD.time(end)/86400]);
         a = get(gca,'ylim');
         a(1) = 0;
@@ -316,38 +289,13 @@ if mod(FSTD.i,1) == 0
     
     if FSTD.i == 1
         
-        n0 = integrate_FSTD(ADVECT.FSTD_in./ (pi * FSTD.meshRmid.^2),1,FSTD.dA,0);
-        n1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1)./ (pi * FSTD.meshRmid.^2),1,FSTD.dA,0);
-        
-        N_adv = n0 + (n1 - n0) * exp(1).^(-FSTD.time/tauadvect);
-        
-        
-        r0num0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.meshRmid,FSTD.dA,0);
-        r0num1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),FSTD.meshRmid,FSTD.dA,0);
-        
-        r0_adv = r0num0 + (r0num1 - r0num0) * exp(1).^(-FSTD.time/tauadvect);
-        r0_adv = r0_adv ./ C_adv;
-        
-        
-        
-        r1num0 = integrate_FSTD(ADVECT.FSTD_in ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,0);
-        r1num1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1) ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,0);
-        
-        r1_adv = r1num0 + (r1num1 - r1num0) * exp(1).^(-FSTD.time/tauadvect);
-        r1_adv = r1_adv ./ N_adv;
-        
-        
         
         OPTS.h5 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeannum(1:FSTD.i),'-','color',cols(3,:),'linewidth',2);
         hold on
         OPTS.h6 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeanarea(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
         
         legend('By Number','By Area')
-        
-        OPTS.r0_pred = plot(FSTD.time/86400,r0_adv,'--','color',cols(1,:),'linewidth',2);
-        OPTS.r1_pred = plot(FSTD.time/86400,r1_adv,'--','color',cols(1,:),'linewidth',2);
-        
-        
+            
         grid on
         box on
         xlabel('Time (days)')
@@ -356,11 +304,6 @@ if mod(FSTD.i,1) == 0
         set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
         legend('By Number','By Area')
         
-        r0 = ADVECT.FSTD_in ./ (pi * FSTD.meshRmid.^2);
-        
-        r0 = integrate_FSTD(r0,FSTD.Rmid',FSTD.dA,1);
-        
-        plot(FSTD.time/86400,0*FSTD.time + r0,'--k')
         xlim([0 FSTD.time(end)/86400]);
         a = get(gca,'ylim');
         a(1) = 0;

@@ -120,11 +120,19 @@ if FSTD.DO
     % loss of concentration directly
     
     if ~isfield(THERMO,'allow_adv_loss_H')
-        THERMO.allow_adv_loss_H = 1; % By default, we let this happen
+        % This concerns letting ice concentration be removed through
+        % advection from the thinnest thickness category. Since
+        % thickness==volume, in order to conserve volume we need to do
+        % this. 
+        THERMO.allow_adv_loss_H = 1; % By default, we let this happen. 
     end
     
     if ~isfield(THERMO,'allow_adv_loss_R')
-        THERMO.allow_adv_loss_R = 1; % By default, we let this happen
+        % This concerns letting ice concentration be removed through
+        % advection from the thinnest size category. This would result in
+        % an additional loss of sea ice volume from the ocean that we
+        % cannot account for. Therefore we do not allow this to happen. 
+        THERMO.allow_adv_loss_R = 0; 
     end
     
     % Floe Merging

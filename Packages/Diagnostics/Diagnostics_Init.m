@@ -14,13 +14,14 @@ if FSTD.DO
     DIAG.FSTD = struct();
     
     % Diagnostics for general FSTD. We may add as we go.
-    DIAG.FSTD.R = FSTD.Rint; 
-    DIAG.FSTD.H = FSTD.H; 
+    DIAG.FSTD.R = FSTD.Rint;
+    DIAG.FSTD.H = FSTD.H;
     
     %% Multi-dimensional diagnostics
     
     dum_diag = zeros([size(FSTD.psi) OPTS.nt + 1]); % Something as large as psi
     DIAG.FSTD.psi = dum_diag; % The full FSTD
+    DIAG.FSTD.dA = dum_diag; % The DA matrix
     DIAG.FSTD.diff = dum_diag; % The total change per timestep for all components
     
     %% One-dimensional diagnostics
@@ -65,8 +66,8 @@ if THERMO.DO == 1
     DIAG.THERMO.dc_pan = dum_diag;
     DIAG.THERMO.dc_edge = dum_diag;
     DIAG.THERMO.dc_tot = dum_diag;
-    DIAG.THERMO.diffnet = dum_diag; 
-
+    DIAG.THERMO.diffnet = dum_diag;
+    
 end
 
 if WAVES.DO
@@ -75,12 +76,12 @@ if WAVES.DO
     DIAG.WAVES = struct();
     
     dum_diag = zeros(1,OPTS.nt+1);
-    DIAG.WAVES.tau = dum_diag; 
-    DIAG.WAVES.diffnet = dum_diag; 
+    DIAG.WAVES.tau = dum_diag;
+    DIAG.WAVES.diffnet = dum_diag;
     
     dum_diag = zeros([size(FSTD.psi) OPTS.nt+1]);
-    DIAG.WAVES.In = dum_diag; 
-    DIAG.WAVES.Out = dum_diag; 
+    DIAG.WAVES.In = dum_diag;
+    DIAG.WAVES.Out = dum_diag;
     
 end
 
@@ -91,16 +92,17 @@ if MECH.DO
     DIAG.MECH.mag = dum_diag;
     DIAG.MECH.epsI = dum_diag;
     DIAG.MECH.epsII = dum_diag;
-    DIAG.MECH.diffnet = dum_diag; 
+    DIAG.MECH.diffnet = dum_diag;
     
 end
 
 if ADVECT.DO
-    DIAG.ADAVECT = struct(); 
+    DIAG.ADVECT = struct();
     
-    dum_diag = zeros(1,OPTS.nt+1);    
-    DIAG.ADVECT.diffnet = dum_diag; 
-    DIAG.ADVECT.FSTD_in = ADVECT.FSTD_in; 
+    dum_diag = zeros(1,OPTS.nt+1);
+    DIAG.ADVECT.diffnet = dum_diag;
+    DIAG.ADVECT.FSTD_in = ADVECT.FSTD_in;
+    DIAG.ADVECT.dc_adv = dum_diag;
     
 end
 

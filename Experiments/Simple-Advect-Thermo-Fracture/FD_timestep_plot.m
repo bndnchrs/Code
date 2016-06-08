@@ -209,16 +209,28 @@ if mod(FSTD.i,1) == 0
         
         hold on
         tauadvect = OPTS.Domainwidth / ADVECT.v1;
-              
+        tau_0 = THERMO.fixed_Q(1) / (OPTS.L_f * OPTS.rho_ice);
+        
         V_in = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid,FSTD.dA,0); % The total ice volume (area-weighted)
         
         V_init = DIAG.FSTD.Vtot(1);
-             
+        
+        % Compute the thermo solution
+        V_thermo = DIAG.FSTD.Vtot(1) - tau_0 * FSTD.time;
+        V_thermo(V_thermo < 0) = 0;
+        
         % Compute the advective-only solution
         V_adv = V_in + exp(1).^(-FSTD.time/tauadvect)*(V_init - V_in);
         
+        % Compute the full solution
+        tauadvect = OPTS.Domainwidth / ADVECT.v1;
+        delta = V_in / tauadvect - tau_0;
+        V_both = (V_init - tauadvect * delta) * exp(1).^(-FSTD.time/tauadvect) + tauadvect * delta;
+        
         
         plot(FSTD.time/86400,V_adv,'--','color',cols(1,:),'linewidth',2)
+        plot(FSTD.time/86400,V_thermo,'--','color',cols(2,:),'linewidth',2)
+        plot(FSTD.time/86400,V_both,'-','color',cols(3,:),'linewidth',2)
         OPTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
         OPTS.h2 = scatter(DIAG.FSTD.time(FSTD.i)/86400,DIAG.FSTD.Vtot(FSTD.i),200,'filled','markerfacecolor',cols(5,:));
         
@@ -382,7 +394,10 @@ end
 drawnow
 
 if FSTD.i == OPTS.nt
-       
+    
+    legend(ax_vol,'Predicted - Advect','Predicted - Thermo','Predicted - Both','Calculated');
+    legend(ax_mfs,[OPTS.h5 OPTS.h6 OPTS.r0_pred],'By Number','By Area','Predicted  - Advect');
+    
     pos = [16 16];
     set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
     set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');

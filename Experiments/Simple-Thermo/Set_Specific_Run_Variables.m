@@ -16,7 +16,7 @@ DIAG.DOPLOT = 0; % Plot Diagnostics?
 %% Set Thermo Options and External Forcing
 THERMO.fixQ = 1; % Fix the heat flux
 
-Qin = 150; 
+Qin = -150; 
 
 THERMO.fixed_Q = Qin + zeros(1,OPTS.nt); % To be Q_fixed
 

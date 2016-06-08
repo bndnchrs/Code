@@ -16,7 +16,7 @@ ADVECT = struct();
 
 % Set General options
 OPTS.nt = 48; % Number of timesteps
-OPTS.dt = 3600; % Timestep duration
+OPTS.dt = 14400; % Timestep duration
 OPTS.nh = 13; % No. of thickness categories 
 
 DH = .2; % Thickness increment (m)
@@ -33,8 +33,12 @@ for i = 2:65
     FSTD.Rint(i) = sqrt(2*FSTD.Rint(i-1)^2 - (4/5) * FSTD.Rint(i-1)^2);
 end
 
+
+FSTD.Rint = linspace(.5,150,20); 
+
+
 OPTS.nr = length(FSTD.Rint); % Number of size categories
-FSTD.H = 1.5; % Thickness Vector
+FSTD.H = .1:.2:2.5; % Thickness Vector
 
 OPTS.r_p = .5; % Minimum floe size category
 OPTS.h_p = .1; % Minimum thickness category

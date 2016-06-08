@@ -43,6 +43,7 @@ counter = 0;
 
 % This is the vector of floe sizes we will use in the code. We will then
 % interpolate the FSD formed over this field into the actual floe size bins
+
 Rhist = linspace(FSTD.Rint(1),FSTD.Rint(end),length(FSTD.Rmid));
 % This is the spacing of the discretization
 dRHist = [Rhist(1) diff(Rhist)];
@@ -93,7 +94,7 @@ while counter < WAVES.maxcounts
         D2Y = 0;
     end
     
-    strain = .5*(bsxfun(@times,FSTD.H',abs(D2Y./D2X)));  % Calculate strain magnitude
+    strain = .5*(bsxfun(@times,FSTD.Hmid',abs(D2Y./D2X)));  % Calculate strain magnitude
     % strain is now a NFRAC by H size array
     
     % Those values exceeding strain threshold
@@ -103,7 +104,7 @@ while counter < WAVES.maxcounts
     % fracture, and put that in Xlocs. Then we take the distance between
     % them and call that the fracture lengths, and store those in a new
     % array
-    if sum(abovelocs) ~= 0
+    if sum(abovelocs(:)) ~= 0
         for jind = 1:size(abovelocs,1)
             
             % The extreme X vales for ice of this thickness
@@ -131,13 +132,18 @@ for jind = 1:size(abovelocs,1)
     
     if sum(dX{jind}) > 1
         
-        [A{jind},edges{jind}]  = histcounts(dX{jind},[Rhist Inf]);
+        [A{jind},edges{jind}]  = histcounts(dX{jind},[FSTD.Rint Inf]);
         WAVES.bin_cts(jind,:) = A{jind};
+        cens = dX{jind} > max(FSTD.Rmid); 
         smoothcts(jind,:) = ksdensity(dX{jind},FSTD.Rmid);
+        if sum(smoothcts(jind,:)) == 0
+            smoothcts(jind,:) = A{jind}; 
+        end
         
     else
         
         smoothcts(jind,:) = 0*WAVES.bin_cts(jind,:);
+        
     end
 end
 
@@ -158,7 +164,7 @@ Frac = bsxfun(@rdivide,bsxfun(@times,smoothcts,FSTD.Rmid),sum(bsxfun(@times,smoo
 WAVES.In = 0*FSTD.psi;
 WAVES.Out = 0*FSTD.psi;
 
-if sum(abovelocs) > 1
+if sum(abovelocs(:)) > 1
     
     % Now we determine two things:
     % 1: What is the FSD formed when a floe of size (i,j) fractures? This

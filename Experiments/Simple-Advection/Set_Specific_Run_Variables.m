@@ -14,6 +14,7 @@ DIAG.DO = 1; % Diagnostics Package
 DIAG.DOPLOT = 0; % Plot Diagnostics?
 
 %% Set Advection Options
+OPTS.Domainwidth = 1e4; 
 
 var = [2.5^2 .125^2];
 
@@ -21,24 +22,25 @@ psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[100 1.5],var);
 psi = psi/sum(psi(:));
 psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
 
-ADVECT.FSTD_in = psi; 
+ADVECT.FSTD_in = psi/ sum(psi(:).*FSTD.dA(:)); 
 
 ADVECT.prescribe_ice_vels = 1; 
 
 OCEAN.UVEL = zeros(2,OPTS.nt); 
 
 % UVEL(2) needs to be equal to UVEL(1) unless mechanics is turned on. 
-OCEAN.UVEL(1,:) = .1;
-OCEAN.UVEL(2,:) = .1; 
+OCEAN.UVEL(1,:) = .5;
+OCEAN.UVEL(2,:) = .5; 
 
 %% Initial Conditions
 % Initial Distribution has all ice at one floe size. 
 var = [2.5^2 .125^2];
 % Make a Gaussian at thickness 1.5 m and size 25 m with variance var.
 
-psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[25 3],var);
+psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[5 1],var);
 psi = psi/sum(psi(:));
 psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
 
+
 % Initial concentration is 50%
-FSTD.psi = psi/sum(psi(:));
+FSTD.psi = .5*psi/ sum(psi(:).*FSTD.dA(:)); 
