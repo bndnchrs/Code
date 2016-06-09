@@ -55,6 +55,8 @@ end
 % This becomes our temporary psi
 psitemp = psi+dt_temp*diff_FD;
 
+%%
+
 % However, we can also have an ice concentration that is in excess of 1.
 % This needs to be corrected as well!
 concnew = integrate_FSTD(psitemp,1,dA,0);
@@ -62,7 +64,7 @@ conc = integrate_FSTD(psi,1,dA,0);
 
 % When flag == 1 we are only stopping ice volume from becoming less than 0
 % So flag == 0 means we are considering the case when conc > 1
-if concnew > 1 + 1e-8 && flag == 0
+if concnew > 1 + 1e-10 && flag == 0
     
     % This is the excess
     concex = concnew - 1;

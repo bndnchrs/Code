@@ -9,7 +9,9 @@ OPTS = struct();
 
 % This path points to where Drive_FSTD.m is contained
 OPTS.path_of_code = '/Users/Horvat/Research/FSTD-Code/Code/';
-OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/Simple_Mech/'; 
+OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/Simple_Waves/'; 
+OPTS.figpath = '~/Dropbox/FSTD/Manuscripts/FSTD-Code-Feedbacks/Figures/Simple-Runs/Waves-Only/Waves-Only';
+
 
 % Add to the path
 addpath([OPTS.path_of_code 'Core/']); 
@@ -17,7 +19,7 @@ addpath([OPTS.path_of_code 'Core/']);
 % The total number of runs
 OPTS.numruns = 1; 
 % A list of all the output names of the files we create
-OPTS.names = {'New_Timestep'};
+OPTS.names = {'Example'};
 
 for i = 1:OPTS.numruns
     

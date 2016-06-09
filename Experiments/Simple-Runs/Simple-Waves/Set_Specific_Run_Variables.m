@@ -28,12 +28,9 @@ EXFORC.wavespec(:,ind) = 1;
 var = [2.5^2 .125^2];
 % Make a Gaussian at thickness 1.5 m and size 25 m with variance var.
 
-psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[25 1.5],var);
+psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[125 1.5],var);
 psi = psi/sum(psi(:));
 psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
-
-psi = 0*psi;
-psi(end,end) = 1;
 
 % Initial concentration is 50%
 FSTD.psi = .5*psi/sum(psi(:).*FSTD.dA(:)); 

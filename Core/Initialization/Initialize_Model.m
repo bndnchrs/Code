@@ -6,6 +6,7 @@ fprintf('INITIALIZING MAIN MODEL \n');
 
 addpath([OPTS.path_of_code '/Utilities/'])
 addpath([OPTS.path_of_code '/Core/Timestepping/'])
+addpath([OPTS.path_of_code '/Core/Plotting/'])
 
 %% Timestepping
 % Times - hour/day/year/etc

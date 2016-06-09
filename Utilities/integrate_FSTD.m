@@ -6,15 +6,16 @@ function integral = integrate_FSTD(psi,func,dA,doaverage)
 
 % 
 if doaverage
-normalize = squeeze(sum(sum(bsxfun(@times,psi,dA),1),2)); 
+normalize = (squeeze(sum(sum(bsxfun(@times,psi,dA),1),2))).^(-1); 
 else
     normalize = 1; 
 end
 
 % The interior of the integral
 func = bsxfun(@times,func,dA);
+func = bsxfun(@times,psi,func); 
 
-integral = (1./normalize) .* squeeze(sum(sum(bsxfun(@times,psi,func),1),2)); 
+integral = normalize .* squeeze(sum(sum(func,1),2)); 
 
 
 end

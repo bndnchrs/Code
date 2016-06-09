@@ -1,4 +1,4 @@
-%% Run_Wrapper
+%% Run_WrapperD
 % 12/7/2015 - Chris Horvat
 
 % Define the OPTS structure array that carries the run name and the run
@@ -9,7 +9,8 @@ OPTS = struct();
 
 % This path points to where Drive_FSTD.m is contained
 OPTS.path_of_code = '/Users/Horvat/Research/FSTD-Code/Code/';
-OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/Simple-Waves-Advect/'; 
+OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/Simple-Thermo-Advect/'; 
+OPTS.figpath = '~/Dropbox/FSTD/Manuscripts/FSTD-Code-Feedbacks/Figures/Simple-Runs/Freeze-Advect/Freeze-Advect';
 
 % Add to the path
 addpath([OPTS.path_of_code 'Core/']); 
@@ -29,7 +30,6 @@ for i = 1:OPTS.numruns
     OPTS.run_number = i;
     % Do the damn thing
     DIAG = Drive_FSTD(OPTS); 
-        
+    
 end
 
-tightfig(gcf);

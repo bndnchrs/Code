@@ -9,7 +9,8 @@ OPTS = struct();
 
 % This path points to where Drive_FSTD.m is contained
 OPTS.path_of_code = '/Users/Horvat/Research/FSTD-Code/Code/';
-OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/Simple_Waves/'; 
+OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/Simple-Thermo-Advect/'; 
+OPTS.figpath = '~/Dropbox/FSTD/Manuscripts/FSTD-Code-Feedbacks/Figures/Simple-Runs/Melt-Advect/Melt-Advect';
 
 % Add to the path
 addpath([OPTS.path_of_code 'Core/']); 
@@ -18,6 +19,8 @@ addpath([OPTS.path_of_code 'Core/']);
 OPTS.numruns = 1; 
 % A list of all the output names of the files we create
 OPTS.names = {'Example'};
+
+close all
 
 for i = 1:OPTS.numruns
     
@@ -29,3 +32,4 @@ for i = 1:OPTS.numruns
     DIAG = Drive_FSTD(OPTS); 
     
 end
+

@@ -46,9 +46,11 @@ ADVECT.diff = ADVECT.diff / OPTS.Domainwidth;
 % Really just V_max_delta
 
 
-ADVECT.V_max_in = FSTD.H_max_i*sum(ADVECT.v1*ADVECT.FSTD_in(:,end).*FSTD.dA_i(:,end)); 
+ADVECT.V_max_in = FSTD.H_max_i*sum(ADVECT.FSTD_in(:,end).*FSTD.dA_i(:,end)); 
 
-ADVECT.V_max_in = ADVECT.V_max_in / OPTS.Domainwidth;
+
+ADVECT.V_max_in = ADVECT.V_max_in / OPTS.Domainwidth; 
+
 
 ADVECT.V_max_out = FSTD.H_max*sum(ADVECT.out(:,end).*FSTD.dA(:,end));
 ADVECT.V_max_out = ADVECT.V_max_out / OPTS.Domainwidth; 

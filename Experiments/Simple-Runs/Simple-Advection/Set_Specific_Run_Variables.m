@@ -18,7 +18,7 @@ OPTS.Domainwidth = 1e4;
 
 var = [2.5^2 .125^2];
 
-psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[100 1.5],var);
+psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[100 2],var);
 psi = psi/sum(psi(:));
 psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
 

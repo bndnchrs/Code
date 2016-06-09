@@ -19,6 +19,35 @@ if FSTD.i == 1
     
 end
 
+if FSTD.i == OPTS.nt
+    
+            nplots = 5;
+
+    
+    cplots = [103,0,31
+178,24,43
+214,96,77
+244,165,130
+253,219,199
+255,255,255
+224,224,224
+186,186,186
+135,135,135
+77,77,77
+26,26,26]/256;
+
+div = size(cplots,1)/nplots; 
+
+for i = 1:3
+    colplots(:,i) = downsample(cplots(:,i),floor(div));
+end
+
+colplots(colplots > 1) = 1; 
+colplots(colplots < 0) = 0; 
+
+end
+
+
 if mod(FSTD.i,1) == 0
     
     
@@ -135,14 +164,22 @@ if mod(FSTD.i,1) == 0
     
     if FSTD.i == OPTS.nt
         
+        nplots = 5;
+        skip = floor(OPTS.nt/nplots);
+        hold on
+        inds = 1:skip:size(DIAG.FSTD.psi,3); 
+        
+        for i = 1:length(inds)
+        
+            plot(FSTD.Rint,log10(squeeze(sum(bsxfun(@times,DIAG.FSTD.psi(:,:,inds(i)),FSTD.dA),2)+eps)),'color',colplots(i,:));
+        
+        end
+        
         
         nplots = 10;
         skip = floor(OPTS.nt/nplots);
         llim = floor(log10(1/length(FSTD.Rint)) - 1);
-        
-        OPTS.p1 = plot(FSTD.Rint,log10(squeeze(sum(bsxfun(@times,DIAG.FSTD.psi(:,:,1:skip:end),FSTD.dA),2)+eps)));
-        
-        hold on
+                
         grid on
         box on
         xlabel('Floe Size')
@@ -153,7 +190,6 @@ if mod(FSTD.i,1) == 0
         set(gca,'ylim',[llim 0])
         
         shading interp
-        colorbar
         
         
         
@@ -178,10 +214,16 @@ if mod(FSTD.i,1) == 0
     if FSTD.i == OPTS.nt
         
         
-        nplots = 10;
         skip = floor(OPTS.nt/nplots);
+        hold on
+        inds = 1:skip:size(DIAG.FSTD.psi,3); 
         
-        OPTS.p1 = plot(FSTD.Hmid,log10(squeeze(sum(bsxfun(@times,DIAG.FSTD.psi(:,:,1:skip:end),FSTD.dA),1)+eps)));
+        for i = 1:length(inds)
+        
+            plot(FSTD.Hmid,log10(squeeze(sum(bsxfun(@times,DIAG.FSTD.psi(:,:,inds(i)),FSTD.dA),1)+eps)),'color',colplots(i,:));
+        
+        end
+        
         llim = floor(log10(1/length(FSTD.Hmid)) - 1);
         
         hold on
@@ -195,7 +237,6 @@ if mod(FSTD.i,1) == 0
         set(gca,'ylim',[llim 0])
         
         shading interp
-        colorbar
         
         
     end
@@ -208,29 +249,47 @@ if mod(FSTD.i,1) == 0
     if FSTD.i == 1
         
         hold on
-        tauadvect = OPTS.Domainwidth / ADVECT.v1;
-        tau_0 = THERMO.fixed_Q(1) / (OPTS.L_f * OPTS.rho_ice);
         
-        V_in = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid,FSTD.dA,0); % The total ice volume (area-weighted)
+        if ADVECT.DO
+            
+            V_init = DIAG.FSTD.Vtot(1);
+            
+            tauadvect = OPTS.Domainwidth / ADVECT.v1;
+            
+            V_in = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid,FSTD.dA,0); % The total ice volume (area-weighted)
+            
+            
+            % Compute the advective-only solution
+            V_adv = V_in + exp(1).^(-FSTD.time/tauadvect)*(V_init - V_in);
+            
+            plot(FSTD.time/86400,V_adv,'--','color',cols(1,:),'linewidth',2)
+            
+            
+        end
         
-        V_init = DIAG.FSTD.Vtot(1);
-        
-        % Compute the thermo solution
-        V_thermo = DIAG.FSTD.Vtot(1) - tau_0 * FSTD.time;
-        V_thermo(V_thermo < 0) = 0;
-        
-        % Compute the advective-only solution
-        V_adv = V_in + exp(1).^(-FSTD.time/tauadvect)*(V_init - V_in);
-        
-        % Compute the full solution
-        tauadvect = OPTS.Domainwidth / ADVECT.v1;
-        delta = V_in / tauadvect - tau_0;
-        V_both = (V_init - tauadvect * delta) * exp(1).^(-FSTD.time/tauadvect) + tauadvect * delta;
+        if THERMO.DO
+            
+            tau_0 = THERMO.fixed_Q(1) / (OPTS.L_f * OPTS.rho_ice);
+            
+            % Compute the thermo solution
+            V_thermo = DIAG.FSTD.Vtot(1) - tau_0 * FSTD.time;
+            V_thermo(V_thermo < 0) = 0;
+            plot(FSTD.time/86400,V_thermo,'--','color',cols(2,:),'linewidth',2)
+            
+        end
         
         
-        plot(FSTD.time/86400,V_adv,'--','color',cols(1,:),'linewidth',2)
-        plot(FSTD.time/86400,V_thermo,'--','color',cols(2,:),'linewidth',2)
-        plot(FSTD.time/86400,V_both,'-','color',cols(3,:),'linewidth',2)
+        if THERMO.DO && ADVECT.DO
+            
+            
+            % Compute the full solution
+            delta = V_in / tauadvect - tau_0;
+            V_both = (V_init - tauadvect * delta) * exp(1).^(-FSTD.time/tauadvect) + tauadvect * delta;
+            
+            plot(FSTD.time/86400,V_both,'-','color',cols(3,:),'linewidth',2)
+            
+        end
+        
         OPTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
         OPTS.h2 = scatter(DIAG.FSTD.time(FSTD.i)/86400,DIAG.FSTD.Vtot(FSTD.i),200,'filled','markerfacecolor',cols(5,:));
         
@@ -260,12 +319,19 @@ if mod(FSTD.i,1) == 0
     
     if FSTD.i == 1
         
-        c0 = integrate_FSTD(ADVECT.FSTD_in,1,FSTD.dA,0);
-        c1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),1,FSTD.dA,0);
+        if ADVECT.DO
+            
+            c0 = integrate_FSTD(ADVECT.FSTD_in,1,FSTD.dA,0);
+            c1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),1,FSTD.dA,0);
+            
+            C_adv = c0 + (c1 - c0) * exp(1).^(-FSTD.time/tauadvect);
+            
+            plot(FSTD.time/86400,C_adv,'--','color',cols(1,:),'linewidth',2)
+            c0 = integrate_FSTD(ADVECT.FSTD_in,1,FSTD.dA,1);
+            plot(FSTD.time/86400,0*FSTD.time + c0,'--k')
+            
+        end
         
-        C_adv = c0 + (c1 - c0) * exp(1).^(-FSTD.time/tauadvect);
-        
-        plot(FSTD.time/86400,C_adv,'--','color',cols(1,:),'linewidth',2)
         hold on
         OPTS.h3 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.conc(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
         grid on
@@ -274,8 +340,7 @@ if mod(FSTD.i,1) == 0
         title('Ice Concentration')
         ylabel('m^2/m^2')
         set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
-        c0 = integrate_FSTD(ADVECT.FSTD_in,1,FSTD.dA,1);
-        plot(FSTD.time/86400,0*FSTD.time + c0,'--k')
+        
         xlim([0 FSTD.time(end)/86400]);
         ylim([0 1])
         
@@ -292,13 +357,23 @@ if mod(FSTD.i,1) == 0
     
     if FSTD.i == 1
         
-        h0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid,FSTD.dA,0);
-        h1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),FSTD.Hmid,FSTD.dA,0);
         
-        H_adv = h0 + (h1 - h0) * exp(1).^(-FSTD.time/tauadvect);
-        H_adv = H_adv ./ C_adv;
+        if ADVECT.DO
+            
+            h0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid,FSTD.dA,0);
+            h1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),FSTD.Hmid,FSTD.dA,0);
+            
+            
+            plot(FSTD.time/86400,0*FSTD.time + h0,'--k')
+            
+            H_adv = h0 + (h1 - h0) * exp(1).^(-FSTD.time/tauadvect);
+            H_adv = H_adv ./ C_adv;
+            
+            plot(FSTD.time/86400,H_adv,'--','color',cols(1,:),'linewidth',2)
+            
+        end
         
-        plot(FSTD.time/86400,H_adv,'--','color',cols(1,:),'linewidth',2)
+        
         hold on
         OPTS.h4 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmean(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
         
@@ -308,8 +383,6 @@ if mod(FSTD.i,1) == 0
         title('Mean Ice Thickness')
         ylabel('m')
         set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
-        h0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid,FSTD.dA,1);
-        plot(FSTD.time/86400,0*FSTD.time + h0,'--k')
         xlim([0 FSTD.time(end)/86400]);
         a = get(gca,'ylim');
         a(1) = 0;
@@ -328,25 +401,7 @@ if mod(FSTD.i,1) == 0
     
     if FSTD.i == 1
         
-        n0 = integrate_FSTD(ADVECT.FSTD_in./ (pi * FSTD.meshRmid.^2),1,FSTD.dA,0);
-        n1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1)./ (pi * FSTD.meshRmid.^2),1,FSTD.dA,0);
         
-        N_adv = n0 + (n1 - n0) * exp(1).^(-FSTD.time/tauadvect);
-        
-        
-        r0num0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.meshRmid,FSTD.dA,0);
-        r0num1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),FSTD.meshRmid,FSTD.dA,0);
-        
-        r0_adv = r0num0 + (r0num1 - r0num0) * exp(1).^(-FSTD.time/tauadvect);
-        r0_adv = r0_adv ./ C_adv;
-        
-        
-        
-        r1num0 = integrate_FSTD(ADVECT.FSTD_in ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,0);
-        r1num1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1) ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,0);
-        
-        r1_adv = r1num0 + (r1num1 - r1num0) * exp(1).^(-FSTD.time/tauadvect);
-        r1_adv = r1_adv ./ N_adv;
         
         
         
@@ -356,9 +411,39 @@ if mod(FSTD.i,1) == 0
         
         legend('By Number','By Area')
         
-        OPTS.r0_pred = plot(FSTD.time/86400,r0_adv,'--','color',cols(1,:),'linewidth',2);
-        OPTS.r1_pred = plot(FSTD.time/86400,r1_adv,'--','color',cols(1,:),'linewidth',2);
         
+        if ADVECT.DO
+            
+            n0 = integrate_FSTD(ADVECT.FSTD_in./ (pi * FSTD.meshRmid.^2),1,FSTD.dA,0);
+            n1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1)./ (pi * FSTD.meshRmid.^2),1,FSTD.dA,0);
+            
+            N_adv = n0 + (n1 - n0) * exp(1).^(-FSTD.time/tauadvect);
+            
+            
+            r0num0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.meshRmid,FSTD.dA,0);
+            r0num1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),FSTD.meshRmid,FSTD.dA,0);
+            
+            r0_adv = r0num0 + (r0num1 - r0num0) * exp(1).^(-FSTD.time/tauadvect);
+            r0_adv = r0_adv ./ C_adv;
+            
+            
+            r1num0 = integrate_FSTD(ADVECT.FSTD_in ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,0);
+            r1num1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1) ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,0);
+            
+            r1_adv = r1num0 + (r1num1 - r1num0) * exp(1).^(-FSTD.time/tauadvect);
+            r1_adv = r1_adv ./ N_adv;
+            
+            OPTS.r0_pred = plot(FSTD.time/86400,r0_adv,'--','color',cols(1,:),'linewidth',2);
+            OPTS.r1_pred = plot(FSTD.time/86400,r1_adv,'--','color',cols(1,:),'linewidth',2);
+            
+            r0 = ADVECT.FSTD_in ./ (pi * FSTD.meshRmid.^2);
+            
+            r0 = integrate_FSTD(r0,FSTD.Rmid',FSTD.dA,1);
+            
+            
+            plot(FSTD.time/86400,0*FSTD.time + r0,'--k')
+            
+        end
         
         grid on
         box on
@@ -368,11 +453,6 @@ if mod(FSTD.i,1) == 0
         set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
         legend('By Number','By Area')
         
-        r0 = ADVECT.FSTD_in ./ (pi * FSTD.meshRmid.^2);
-        
-        r0 = integrate_FSTD(r0,FSTD.Rmid',FSTD.dA,1);
-        
-        plot(FSTD.time/86400,0*FSTD.time + r0,'--k')
         xlim([0 FSTD.time(end)/86400]);
         a = get(gca,'ylim');
         a(1) = 0;
@@ -401,21 +481,9 @@ if FSTD.i == OPTS.nt
     pos = [16 16];
     set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
     set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
-    saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Code-Feedbacks/Figures/Melt-Advect/Melt-Advect.fig')
-    saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Code-Feedbacks/Figures/Melt-Advect/Melt-Advect.pdf')
+    saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Code-Feedbacks/Figures/Advect-Only/Advect-Only.fig')
+    saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Code-Feedbacks/Figures/Advect-Only/Advect-Only.pdf')
     
-    %     figure
-    %     plot(DIAG.FSTD.time(1:end-1)/86400,DIAG.THERMO.dc_tot(2:end),'-','color',cols(3,:),'linewidth',2)
-    %     hold on
-    %     plot(DIAG.FSTD.time(1:end-1)/86400,DIAG.ADVECT.dc_adv(2:end),'-','color',cols(2,:),'linewidth',2)
-    %     grid on
-    %     box on
-    %     xlabel('Time (days)')
-    %     a = get(gca,'ylim');
-    %     set(gca,'ylim',[-1 1] * max(abs(a)))
-    %     legend('Thermodynamics','Advection')
-    %     ylabel('1/s')
-    %     xlabel('Time (days)')
-    %     set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
     
 end
+

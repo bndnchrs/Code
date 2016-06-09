@@ -10,6 +10,7 @@ OPTS = struct();
 % This path points to where Drive_FSTD.m is contained
 OPTS.path_of_code = '/Users/Horvat/Research/FSTD-Code/Code/';
 OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/Simple-Thermo-Advect/'; 
+OPTS.figpath = '~/Dropbox/FSTD/Manuscripts/FSTD-Code-Feedbacks/Figures/Simple-Runs/Freeze-Advect/Freeze-Advect';
 
 % Add to the path
 addpath([OPTS.path_of_code 'Core/']); 

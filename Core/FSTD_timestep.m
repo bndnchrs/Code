@@ -15,7 +15,6 @@ reset_global_variables;
 % Get the grid-level forcing parameters
 get_external_forcing;
 
-
 %% Actual Sub Timestep
 while OPTS.dt_sub > 0
     

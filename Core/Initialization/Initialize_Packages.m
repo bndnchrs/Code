@@ -101,14 +101,5 @@ if DIAG.DO
     
 end
 
-
-if DIAG.DOPLOT
-    
-    addpath('./Output/')
-    
-end
-
-
-
 end
 
