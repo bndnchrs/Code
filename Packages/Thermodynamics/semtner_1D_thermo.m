@@ -18,7 +18,7 @@ kappa_I = 2.034; %J/(s deg C m)
 sigma = 5.67e-8; % Boltzmann constant
 T_B = -2; % Degrees C (temp of bottom)
 
-F_a = zeros(1,length(h)); 
+F_a = zeros(1,length(FSTD.Hmid)); 
 F_s = F_a; 
 dhdt_surf = F_a; 
 

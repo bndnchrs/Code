@@ -54,10 +54,11 @@ for i = 1:length(R)
         
         % Radius of the newly formed floe
         if d^2 < maxr^2/2
-            rnew = sqrt(s^2 + d^2 -    d^2/2);
+            rnew = sqrt(s^2 + d^2 - d^2/2);
         else
             rnew = sqrt(s^2 + d^2 - maxr^2/2);
         end
+        
         %%
         if exist('dont_guarantee_bigger','var') && dont_guarantee_bigger
             % Picking the new floe location
@@ -167,12 +168,12 @@ for i = 1:length(R)
             V_i = H(k)*pi*R(i)^2 + H_max*pi*R(j)^2;
             
             % Outgoing floe has a reduced area rnew
-            V_out = H_max*rnew^2;
+            V_out = pi*H_max*R(loc)^2;
             
             Kfac(i,j,k,end) = V_i / V_out;
             
             V_i = H_max*pi*R(i)^2 + H(k)*pi*R(j)^2;
-            V_out = H_max*R(loc)^2;
+            V_out = pi*H_max*R(loc)^2;
             
             Kfac(i,j,end,k) = V_i / V_out;
             

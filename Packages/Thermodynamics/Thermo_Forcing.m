@@ -7,7 +7,7 @@
 % ocean, per square meter of open water.
 % EXFORC.Q_ic_noLW - The net heat flux exchanged between the atmosphere and
 % ocean and ice, per square meter of sea ice, but without a calculated ice
-% long-wave component as this must be calculated via the Stefan condition 
+% long-wave component as this must be calculated via the Stefan condition
 % at the ice surface
 
 if isfield(THERMO,'fixed_Q') && THERMO.fixQ
@@ -18,46 +18,34 @@ if isfield(THERMO,'fixed_Q') && THERMO.fixQ
     % which are per unit of open water/ice. This is important to remember!
     
     EXFORC.Q_oc = THERMO.fixed_Q(FSTD.i);
-    EXFORC.Q_ic_noLW = 0; 
+    EXFORC.Q_ic_noLW = 0;
     
 else
     % Otherwise we need to specify heating at the ice and ocean surfaces
     
-    % These are read-in files in the EXFORC structure
-    OCEAN.LW = EXFORC.QLW(FSTD.i);
-    OCEAN.SW = EXFORC.QSW(FSTD.i);
-    
-    % If want to worry about a sensible heat flux
-    if THERMO.SHLambda ~=0
-        OCEAN.SH = -OPTS.SHLambda * (OCEAN.T + 273.14);
-    else
-        OCEAN.SH = 0;
-    end
-    
-    % Heat flux above water
     if ~OCEAN.DO
+        
+        % These are files that are not determined in a call to Ocean_Forcing.
+        
         % If we have no ocean model, the heat flux to a patch of open water is
-        % just the sum of all the terms, with long-wave out calculated at the
-        % specified temperature THERMO.T_oc.
+        % just the LW calculated from a given ocean temperature, and two
+        % compute incoming forcing fields.
         
-        % Positive means warming/melting. 
+        OCEAN.LW = EXFORC.QLW(FSTD.i);
+        OCEAN.SW = EXFORC.QSW(FSTD.i) * (1 - OPTS.alpha_oc);
+        OCEAN.LH = 0;
+        OCEAN.SH = 0;
+        OCEAN.LW_out = -OPTS.sigma * (THERMO.T_oc + 273.14)^4;
         
-        EXFORC.Q_oc = OCEAN.LW + OCEAN.SW*(1-OPTS.alpha_oc) - OPTS.sigma * (THERMO.T_oc + 273.14)^4 + OCEAN.SH;
         
-    else
         
-        % If we do have an ocean model, we specify OCEAN.T
-        EXFORC.Q_oc = OCEAN.LW + OCEAN.SW*(1-OPTS.alpha_oc) - OPTS.sigma * (OCEAN.T + 273.14)^4 + OCEAN.SH;
+        % Positive means warming/melting.
+        EXFORC.Q_oc = OCEAN.LW + OCEAN.SW + OCEAN.SH + OCEAN.LH - OCEAN.LW_out;
+        
+        % This heat flux does not contain the outgoing long-wave heat flux ,
+        % which is solved using the Stefan condition at the ice surface
+        EXFORC.Q_ic_noLW = OCEAN.LW + OCEAN.SW*(1- OPTS.alpha_ic);
         
     end
-    
-    % The heat flux at a patch of ice surface is different. This heat flux does not
-    % contain the outgoing long-wave heat flux , which is solved using the
-    % Stefan condition at the ice surface
-    EXFORC.Q_ic_noLW = OCEAN.LW + OCEAN.SW*(1- OPTS.alpha_ic);
-    
-    % We can also specify a field called fixed_Q. This determines the heating to the ocean
-    % and does not allow for re-calculation depending on the ice/ocean state.
-    % The flag for this is set to be THERMO.fixQ;
     
 end

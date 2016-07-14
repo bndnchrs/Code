@@ -34,13 +34,6 @@ for iteration_index =  OPTS.start_it: OPTS.end_it
         
     end
        
-    %% If we want to plot some various diagnostic output, we can at every timestep
-    if DIAG.DO && DIAG.PLOT_DO
-        
-        FSTD_Plot;
-        drawnow;
-        
-    end
     
     % At the unit interval save_index, we save the output
     if mod(iteration_index,OPTS.save_index) == 0

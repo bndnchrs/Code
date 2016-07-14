@@ -101,9 +101,28 @@ end
 
 %% Calculating interaction matrices
 
+
+
 MECH.gamma_raft = calc_gamma_raft_FD(FSTD.Hmid,FSTD.meshHmid,MECH.H_raft);
 MECH.gamma_ridge = 1 - MECH.gamma_raft;
 
+% In case we disallow ridging or rafting, we need to make sure the
+% interactions proceed. 
+
+if MECH.rafting == 1 && MECH.ridging == 0
+    
+    MECH.gamma_ridge = 0*MECH.gamma_ridge;
+    
+    MECH.gamma_raft = 0*MECH.gamma_raft + 1;
+    
+else if MECH.rafting == 0 && MECH.ridging == 1
+        
+        MECH.gamma_ridge = 0*MECH.gamma_ridge + 1;
+        
+        MECH.gamma_raft = 0*MECH.gamma_raft;
+    end
+    
+end
 
 % Interaction Matrices for Rafting
 if isfield(MECH,'D4_Ridging') && MECH.D4_Ridging == 1
@@ -132,32 +151,32 @@ intstr = ([OPTS.path_of_code 'Packages/' intstr]);
 %%
 
 try
-    if ~isfield(MECH,'try_to_load')
+    if isfield(MECH,'try_to_load') && MECH.try_to_load
         
-        loadstr = 'THISISNOTAFILE';
+        loadstr = intstr;
         
     else
         
-        loadstr = intstr;
-    
+        loadstr = 'THISISNOTAFILE';
+        
     end
     
     load(loadstr)
     fprintf('Was able to find an interaction scheme matching the initial conditions \n')
     
     if MECH.rafting
-    MECH.S_R_raft = S_R_raft;
-    MECH.S_H_raft = S_H_raft;
-    MECH.Kfac_raft = Kfac_raft;
-    MECH.Prob_Interact_raft = Prob_Interact_raft;
+        MECH.S_R_raft = S_R_raft;
+        MECH.S_H_raft = S_H_raft;
+        MECH.Kfac_raft = Kfac_raft;
+        MECH.Prob_Interact_raft = Prob_Interact_raft;
     end
     
     if MECH.ridging
-    MECH.S_R_ridge = S_R_ridge;
-    MECH.S_H_ridge = S_H_ridge;
-    MECH.Kfac_ridge = Kfac_ridge;
-    MECH.Prob_Interact_ridge = Prob_Interact_ridge;
-    
+        MECH.S_R_ridge = S_R_ridge;
+        MECH.S_H_ridge = S_H_ridge;
+        MECH.Kfac_ridge = Kfac_ridge;
+        MECH.Prob_Interact_ridge = Prob_Interact_ridge;
+        
     end
     
 catch errloading
@@ -256,7 +275,7 @@ end
 
 % This matrix is nr by nr by nh by nh, and defines an ambiguous index into
 % which each of the floes formed by the collision of (r1,h1) and (r2,h2)
-% will go. 
+% will go.
 
 % i = MECH.S_out(r1,r2,h1,h2) is a number between 1 and nr +
 % nh*(length(FSTD.H)-1)
@@ -264,19 +283,19 @@ end
 % floes formed with size r3 and h3, with index i3, will be accumulated
 % together
 if MECH.rafting
-MECH.S_out_raft = bsxfun(@plus,length(FSTD.Rmid) * (MECH.S_H_raft -1),MECH.S_R_raft);
-MECH.S_out_raft = permute(MECH.S_out_raft,[1 3 2 4]); 
-MECH.hmax_flag_raft = (MECH.S_H_raft == length(FSTD.Hmid)); 
-MECH.hmax_flag_raft = permute(MECH.hmax_flag_raft,[1 3 2 4]); 
-MECH.hmax_flag_raft(:,end,:,end) = 0; 
+    MECH.S_out_raft = bsxfun(@plus,length(FSTD.Rmid) * (MECH.S_H_raft -1),MECH.S_R_raft);
+    MECH.S_out_raft = permute(MECH.S_out_raft,[1 3 2 4]);
+    MECH.hmax_flag_raft = (MECH.S_H_raft == length(FSTD.Hmid));
+    MECH.hmax_flag_raft = permute(MECH.hmax_flag_raft,[1 3 2 4]);
+    MECH.hmax_flag_raft(:,end,:,end) = 0;
 end
 
 if MECH.ridging
-MECH.S_out_ridge = bsxfun(@plus,length(FSTD.Rmid) * (MECH.S_H_ridge -1),MECH.S_R_ridge);
-MECH.S_out_ridge = permute(MECH.S_out_ridge,[1 3 2 4]); 
-MECH.hmax_flag_ridge = (MECH.S_H_ridge == length(FSTD.Hmid)); 
-MECH.hmax_flag_ridge = permute(MECH.hmax_flag_ridge,[1 3 2 4]); 
-MECH.hmax_flag_ridge(:,end,:,end) = 0; 
+    MECH.S_out_ridge = bsxfun(@plus,length(FSTD.Rmid) * (MECH.S_H_ridge -1),MECH.S_R_ridge);
+    MECH.S_out_ridge = permute(MECH.S_out_ridge,[1 3 2 4]);
+    MECH.hmax_flag_ridge = (MECH.S_H_ridge == length(FSTD.Hmid));
+    MECH.hmax_flag_ridge = permute(MECH.hmax_flag_ridge,[1 3 2 4]);
+    MECH.hmax_flag_ridge(:,end,:,end) = 0;
 end
 
 %% Matrices involved in updating psi. These should be initialized

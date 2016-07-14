@@ -8,6 +8,17 @@ addpath([OPTS.path_of_code '/Utilities/'])
 addpath([OPTS.path_of_code '/Core/Timestepping/'])
 addpath([OPTS.path_of_code '/Core/Plotting/'])
 
+% Add output folders
+
+% This gets the folder in which figpath is contained.
+[a,~,~] = fileparts(OPTS.figpath);
+
+[~,~,~] = mkdir(OPTS.savepath);
+
+[~,~,~] = mkdir(a);
+
+
+
 %% Timestepping
 % Times - hour/day/year/etc
 OPTS.hour = 3600;
@@ -25,12 +36,13 @@ end
 
 % Time stepping (s)
 if ~isfield(OPTS,'dt')
-    OPTS.dt = (1/8) * OPTS.day; % s
+    OPTS.dt = 3600; % s
 end
+
 
 % Number of time steps
 if ~isfield(OPTS,'nt')
-    OPTS.nt = round(15*OPTS.year / OPTS.dt);
+    OPTS.nt = 24*30;
 end
 
 % First timestep
@@ -53,6 +65,11 @@ if ~isfield(OPTS,'domain_width')
     OPTS.domain_width = 1e1*1e3; % 1 km
 end
 
+if ~isfield(OPTS,'time')
+    % Linearly spaced time vector
+    OPTS.time = linspace(OPTS.dt,OPTS.nt*OPTS.dt,OPTS.nt);
+end
+
 % Time Vector
 FSTD.time = OPTS.time; %s
 
@@ -69,7 +86,7 @@ FSTD.i = 1;
 
 % Number of size classes
 if ~isfield(OPTS,'nr')
-    OPTS.nr = 10;
+    OPTS.nr = 65;
 end
 
 % Minimum floe size (m)
@@ -79,8 +96,12 @@ end
 
 % Floe size vector: linearly spaced if not already specified
 if ~isfield(FSTD,'Rint')
-    % Vector of Sizes
-    FSTD.Rint = linspace(OPTS.r_p,OPTS.r_p + (OPTS.nr-1)*OPTS.dr,OPTS.nr);
+    
+    FSTD.Rint(1) = .5;
+    for i = 2:OPTS.nr
+        FSTD.Rint(i) = sqrt(2*FSTD.Rint(i-1)^2 - (4/5) * FSTD.Rint(i-1)^2);
+    end
+    
 end
 
 % Increment between floe sizes
@@ -93,7 +114,7 @@ end
 
 % Number of Thickness Classes
 if ~isfield(OPTS,'nh')
-    OPTS.nh = 10;
+    OPTS.nh = 13; % No. of thickness categories
 end
 
 % Smallest Thicknes (m)
@@ -103,17 +124,12 @@ end
 
 % Thickness Increment (m)
 if ~isfield(OPTS,'dh')
-    OPTS.dh = 5*OPTS.h_p; % m
+    OPTS.dh = .2; % m
 end
 
 % Vector of Thickness
 if ~isfield(FSTD,'H')
     FSTD.H = linspace(OPTS.h_p,OPTS.h_p + (OPTS.nh-1)*OPTS.dh,OPTS.nh); % m
-end
-
-% Maximum Floe Size (this does not change in time)
-if ~isfield(FSTD,'R_max')
-    FSTD.R_max = max(FSTD.Rint) + FSTD.Rint(end) - FSTD.Rint(end-1); %m
 end
 
 % Maximum Ice Thickness (this changes in time)
@@ -126,5 +142,11 @@ if ~isfield(FSTD,'H_max')
     end
 end
 
-% Initialize stuff related to FSTD.psi; 
-Init_Psi; 
+% Maximum Floe Size (this does not change in time)
+if ~isfield(FSTD,'R_max')
+    FSTD.R_max = max(FSTD.Rint) + FSTD.Rint(end) - FSTD.Rint(end-1); %m
+end
+
+
+% Initialize stuff related to FSTD.psi;
+Init_Psi;

@@ -35,7 +35,7 @@ THERMO.drdt = -THERMO.Q_lat/(OPTS.rho_ice*OPTS.L_f*FSTD.latSA);
 THERMO.edgegrowth = (2./FSTD.meshRmid).*FSTD.psi*THERMO.drdt;
 
 %% Do Pancake Growth Rate from open water heat flux
-if THERMO.Q_o < 0 && ~OCEAN.DO
+if THERMO.Q_o < 0 
     
     % If we are freezing, and we aren't simulating the ocean, we just add
     % ice at the surface of the ocean in a simple way.
@@ -75,8 +75,7 @@ if THERMO.dosemtner
     % T_ice - The internal ice temperature calculated for each thickness
     % category
     
-    [THERMO.dhdt_surf,THERMO.dhdt_base,THERMO.Q_cond,THERMO.Q_vert,THERMO.T_ice] ...
-        = semtner_1D_thermo(EXFORC.Q_ic_noLW,THERMO.Q_bas,FSTD.Hmid,THERMO.T_ice);
+    THERMO = semtner_1D_thermo_petty(FSTD,OPTS,THERMO,OCEAN,EXFORC);
     
     % This allows us to calculate the long-wave outgoing heat flux for each ice
     % thickness category
@@ -84,7 +83,7 @@ if THERMO.dosemtner
     
     % Now we have the net heat flux at the ice surface. This should
     % be zero unless there is surface melting
-    EXFORC.Q_ic = EXFORC.Q_ic_noLW - THERMO.Q_lw;
+    EXFORC.Q_ic = THERMO.surf_HF(FSTD.Hmid);
     
 else % Just conserve energy
     
@@ -148,6 +147,11 @@ v_h = repmat(THERMO.dhdt,[length(FSTD.Rint),1]);
 % volume and area as in Hibler (1980). It does this by calculating terms
 % like df(r) = v_r(r) * f(r) where r represent the edges of each box and
 % f(r) is the spectrum (units 1/m^2) and not psi itself.
+
+if THERMO.drdt == 0
+ %   disp('zero drdt')
+end
+
 [THERMO.adv_tend,THERMO.meltoutR,THERMO.meltoutH] = advect2_upwind(FSTD.psi,FSTD.dA,FSTD.Rint,FSTD.H,FSTD.dR,FSTD.dH,v_r,v_h,THERMO.allow_adv_loss_R,THERMO.allow_adv_loss_H);
 
 % Make sure we aren't advecting and dividing by infinity somehow

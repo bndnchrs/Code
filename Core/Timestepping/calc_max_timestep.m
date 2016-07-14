@@ -1,4 +1,27 @@
-function dt_temp = calc_max_timestep(psi,diff_FD,dt,flag,dA,debug)
+function dt_temp = calc_max_timestep(FSTD,OPTS,OCEAN)
+
+% Calculate the maximal timestep possible so that the FSTD is never
+% smaller than zero anywhere.
+dt_temp = compute_max_timestep(FSTD.psi,FSTD.diff,OPTS.dt_sub,0,FSTD.dA,OPTS.debug);
+% Now calculate the maximal timestep so that the volume in the highest
+% thickness category is >= 0.
+dt_temp = compute_max_timestep(FSTD.V_max,FSTD.dV_max,dt_temp,1,FSTD.dA,OPTS.debug);
+
+if OCEAN.DO
+    dt_temp = compute_max_timestep(OCEAN.T-OCEAN.Tfrz,OCEAN.dTdt,dt_temp,0,0,OPTS.debug);
+    dt_temp = compute_max_timestep(OCEAN.H_ml,OCEAN.w,dt_temp,0,0,OPTS.debug);
+end
+
+% If there is an error, dt_temp comes back as a string. We then error
+% ourselves out.
+if strcmp(OPTS.dt_temp,'dt')
+    FSTD.eflag = 1;
+    fprintf('Cut timestep is negative at timestep %d',FSTD.i);
+end
+
+end
+
+function dt_temp = compute_max_timestep(psi,diff_FD,dt,flag,dA,debug)
 %% dt_temp = cut_timestep(psi,diff,dt_sub)
 % This function counts the maximum timestep possible (< dt_sub) which
 % allows the solutions to remain so that the total ice concentration is
@@ -27,7 +50,7 @@ dt_temp = dt;
 
 alpha = min(psitemp(:));
 
-% Now we check to see if any values for psi are less than zero. 
+% Now we check to see if any values for psi are less than zero.
 if alpha < -eps
     
     % if psi is < 0 , we take the maximum timestep possible in order to
@@ -60,7 +83,7 @@ psitemp = psi+dt_temp*diff_FD;
 % However, we can also have an ice concentration that is in excess of 1.
 % This needs to be corrected as well!
 concnew = integrate_FSTD(psitemp,1,dA,0);
-conc = integrate_FSTD(psi,1,dA,0); 
+conc = integrate_FSTD(psi,1,dA,0);
 
 % When flag == 1 we are only stopping ice volume from becoming less than 0
 % So flag == 0 means we are considering the case when conc > 1
@@ -70,11 +93,11 @@ if concnew > 1 + 1e-10 && flag == 0
     concex = concnew - 1;
     % This is the total difference in the FSTD
     diff_gto = (concnew - conc)/dt_temp;
-    % 
-%    diff_temp = -(concex./diff_gto) + dt;
-    dt_temp_2 = (1 - conc) / diff_gto; 
+    %
+    %    diff_temp = -(concex./diff_gto) + dt;
+    dt_temp_2 = (1 - conc) / diff_gto;
     
-    dt_temp = min(dt_temp,dt_temp_2); 
+    dt_temp = min(dt_temp,dt_temp_2);
     if debug
         disp('too much conc, cutting timestep')
     end

@@ -23,6 +23,9 @@ while OPTS.dt_sub > 0
     
     %% Get change from advection of ice from out of domain
     
+    %% Do pancake growth, ocean heat fluxes, and salt fluxes
+    
+
     if ADVECT.DO
         
         FD_timestep_advect;
@@ -58,6 +61,11 @@ while OPTS.dt_sub > 0
     
     if THERMO.DO
         
+        if OCEAN.DO
+            % Get the heat fluxes that are appropriate
+            OCEAN = Ocean_Fluxes_Petty(OCEAN,OPTS,FSTD);
+        
+        end
         % This outputs diff_thermo
         
         Thermo_Timestep;
@@ -76,9 +84,9 @@ while OPTS.dt_sub > 0
         FD_merge_floes;
         FSTD.diff = FSTD.diff + THERMO.diff_merge;
         
-        % merging preserves area so there is no opening term
-        
+        % merging preserves area so there is no opening term 
         FSTD.V_max_in = FSTD.V_max_in + THERMO.V_max_in_merge;
+       
         
     end
     
@@ -96,37 +104,17 @@ while OPTS.dt_sub > 0
         
     end
     
-    %% Do pancake growth, ocean heat fluxes, and salt fluxes
-    
     if OCEAN.DO && THERMO.DO
-        
-        Ocean_Timestep;
-        
-        % From pancake growth
-        % We keep the same timestep here: will this be a problem later?
-        FSTD.diff = FSTD.diff + OCEAN.diff;
-        FSTD.opening = FSTD.opening + OCEAN.opening;
-        FSTD.V_max_in = FSTD.V_max_in + OCEAN.V_max_in;
-        
+     
+        Ocean_Timestep_Petty; 
+
     end
+        
     
     FSTD.dV_max = FSTD.V_max_in - FSTD.V_max_out;
     
     %% Maximal Timestep
-    % Calculate the maximal timestep possible so that the FSTD is never
-    % smaller than zero anywhere.
-    OPTS.dt_temp = calc_max_timestep(FSTD.psi,FSTD.diff,OPTS.dt_sub,0,FSTD.dA,OPTS.debug);
-    % Now calculate the maximal timestep so that the volume in the highest
-    % thickness category is >= 0.
-    OPTS.dt_temp = calc_max_timestep(FSTD.V_max,FSTD.dV_max,OPTS.dt_temp,1,FSTD.dA,OPTS.debug);
-    
-    % If there is an error, dt_temp comes back as a string. We then error
-    % ourselves out.
-    if strcmp(OPTS.dt_temp,'dt')
-        FSTD.eflag = 1;
-        fprintf('Cut timestep is negative at timestep %d',FSTD.i);
-    end
-    
+    OPTS.dt_temp = calc_max_timestep(FSTD,OPTS,OCEAN);
     
     %% Update the main variables psi, openwater, and ocean variables
     update_psi;
@@ -139,12 +127,13 @@ while OPTS.dt_sub > 0
     %% Check to make sure the solutions are legal
     check_FD;
     
- 
-    
     %% If we've thrown an error, lets leave this place
     if FSTD.eflag
         return
     end
+    
+
+
     
 end
 

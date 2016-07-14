@@ -75,7 +75,7 @@ if FSTD.DO
     
     
     if ~isfield(THERMO,'T_ice')
-        THERMO.T_ice = -5 + zeros(size([FSTD.H FSTD.H_max])); % Temperature of sea ice
+        THERMO.T_ice = -5 + zeros(size(FSTD.Hmid)); % Temperature of sea ice
     end
     
     if ~isfield(THERMO,'Toc')

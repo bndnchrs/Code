@@ -52,3 +52,5 @@ OPTS.H_0 = integrate_FSTD(FSTD.psi,FSTD.Hmid,FSTD.dA,1);
 if OPTS.H_0 == 0
     OPTS.H_0 = OPTS.h_p;
 end
+
+FSTD.resid_adjust = 0*FSTD.psi; 

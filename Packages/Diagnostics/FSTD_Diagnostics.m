@@ -11,7 +11,9 @@ if FSTD.DO
     DIAG.FSTD.psi(:,:,diag_ind) = FSTD.psi; % The full FSTD
     DIAG.FSTD.diff(:,:,diag_ind) = FSTD.diff; % The total change per timestep for all components
     DIAG.FSTD.dA(:,:,diag_ind) = FSTD.dA; % The full FSTD
-
+    DIAG.FSTD.diff_FSD(:,diag_ind) = sum(FSTD.diff .* FSTD.dA,2); 
+    DIAG.FSTD.diff_ITD(:,diag_ind) = sum(FSTD.diff .* FSTD.dA,1); 
+    DIAG.FSTD.Hmid(:,diag_ind) = FSTD.Hmid; 
     DIAG.FSTD.time(diag_ind) = FSTD.time_now; % The model time
     DIAG.FSTD.numSC(diag_ind) = OPTS.numSC; % The total number of sub-intervals in each timestep
     DIAG.FSTD.conc(diag_ind) = integrate_FSTD(FSTD.psi,FSTD.one,FSTD.dA,0); % The ice concentration at each timestep
@@ -23,6 +25,8 @@ if FSTD.DO
     DIAG.FSTD.Ntot(diag_ind) = integrate_FSTD(FSTD.NumberDist,1,FSTD.dA,0); % The total ice volume (area-weighted)
     DIAG.FSTD.Hmax(diag_ind) = FSTD.H_max; % The mean ice thickness (area-weighted, normalized)
     DIAG.FSTD.Amax(diag_ind) = integrate_FSTD(FSTD.psi(:,end),1,FSTD.dA(:,end),0); % Maximum Ice Thickness Category Area
+    DIAG.FSTD.resid_adjust(diag_ind) = integrate_FSTD(FSTD.resid_adjust,1,FSTD.dA,0); 
+
     
 end
 
@@ -50,10 +54,28 @@ if diag_ind > 1 % Only do this once we've started
         DIAG.THERMO.Tice(:,diag_ind) = THERMO.T_ice; 
         DIAG.THERMO.Q_cond(:,diag_ind) = THERMO.Q_cond; 
         
-        DIAG.EXFORC.Q_oc(diag_ind) = EXFORC.Q_oc; 
-        DIAG.EXFORC.Q_ic_noLW = EXFORC.Q_ic_noLW;
+       % DIAG.EXFORC.Q_oc(diag_ind) = EXFORC.Q_oc; 
+       % DIAG.EXFORC.Q_ic(:,diag_ind) = EXFORC.Q_ic;
+       % DIAG.EXFORC.Q_ic_noLW(diag_ind) = EXFORC.Q_ic_noLW;
         DIAG.THERMO.diffnet(diag_ind) = sum(abs(THERMO.diff(:)));  
-        
+        DIAG.THERMO.diff_FSD(:,diag_ind) = sum(THERMO.diff .* FSTD.dA,2); 
+        DIAG.THERMO.diff_ITD(:,diag_ind) = sum(THERMO.diff .* FSTD.dA,1); 
+
+    end
+    
+    if THERMO.DO && THERMO.dosemtner
+        DIAG.THERMO.QSW(diag_ind) = OCEAN.SW*(1-OPTS.alpha_ic);
+        DIAG.THERMO.QLW(:,diag_ind) = THERMO.Q_lw;
+    end
+                
+    
+    if THERMO.DO && THERMO.mergefloes && THERMO.drdt >= 0 && FSTD.conc <= 1
+    
+        DIAG.THERMO.alphamerge(diag_ind) = THERMO.alphamerge; 
+        DIAG.THERMO.mn1(diag_ind) = THERMO.Mn1; 
+        DIAG.THERMO.diffmerge(diag_ind) = sum(abs(THERMO.diff_merge(:).*FSTD.dA(:)));
+        DIAG.THERMO.diff_FSD_merge(:,diag_ind) = sum(THERMO.diff_merge .* FSTD.dA,2); 
+
     end
     
     %% Evaluate Mechanical Diagnostics
@@ -63,7 +85,9 @@ if diag_ind > 1 % Only do this once we've started
         DIAG.MECH.epsI(diag_ind) = MECH.eps_I; 
         DIAG.MECH.epsII(diag_ind) = MECH.eps_II; 
         DIAG.MECH.diffnet(diag_ind) = sum(abs(MECH.diff(:).*FSTD.dA(:)));  
-        
+        DIAG.MECH.diff_FSD(:,diag_ind) = sum(MECH.diff .* FSTD.dA,2); 
+        DIAG.MECH.diff_ITD(:,diag_ind) = sum(MECH.diff .* FSTD.dA,1); 
+
         
     end
     
@@ -71,6 +95,8 @@ if diag_ind > 1 % Only do this once we've started
         
         DIAG.ADVECT.diffnet(diag_ind) = sum(abs(ADVECT.diff(:).*FSTD.dA(:))); 
         DIAG.ADVECT.dc_adv(diag_ind) = sum(ADVECT.diff(:).*FSTD.dA(:)); 
+        DIAG.ADVECT.diff_FSD(:,diag_ind) = sum(ADVECT.diff .* FSTD.dA,2);        
+        DIAG.ADVECT.diff_ITD(:,diag_ind) = sum(ADVECT.diff .* FSTD.dA,1);         
         
     end
     
@@ -81,6 +107,9 @@ if diag_ind > 1 % Only do this once we've started
         DIAG.WAVES.In(:,:,diag_ind) = WAVES.In; % The full FSTD
         DIAG.WAVES.Out(:,:,diag_ind) = WAVES.Out; % The total change per timestep for all components
         DIAG.WAVES.diffnet(diag_ind) = sum(abs(WAVES.diff(:).*FSTD.dA(:)));  
+        DIAG.WAVES.diff_FSD(:,diag_ind) = sum(WAVES.diff .* FSTD.dA,2); 
+        DIAG.WAVES.diff_ITD(:,diag_ind) = sum(WAVES.diff .* FSTD.dA,1); 
+
         
     end
     
@@ -89,10 +118,33 @@ if diag_ind > 1 % Only do this once we've started
         
         DIAG.OCEAN.T(diag_ind) = OCEAN.T;
         DIAG.OCEAN.S(diag_ind) = OCEAN.S;
-        DIAG.OCEAN.pancakes(diag_ind) = sum(OCEAN.pancakes(:).*FSTD.dA(:));
-        DIAG.OCEAN.Q_open(diag_ind) = OCEAN.Q_open;
-        DIAG.OCEAN.Qrest(diag_ind) = OCEAN.Q_rest;
-        DIAG.OCEAN.Q_to_ice(diag_ind) = OCEAN.Q_oi;
+        
+        DIAG.OCEAN.W(diag_ind) = OCEAN.w;
+        
+        DIAG.OCEAN.P_W(diag_ind) = OCEAN.Power_Wave;
+        DIAG.OCEAN.P_B(diag_ind) = OCEAN.Power_Buoy;
+        DIAG.OCEAN.P_E(diag_ind) = OCEAN.Power_Entrain;
+
+        DIAG.OCEAN.QLH(diag_ind) = OCEAN.Q_LH;
+        DIAG.OCEAN.QSH(diag_ind) = OCEAN.Q_SH;
+        DIAG.OCEAN.QLW_out(diag_ind) = OCEAN.Q_LW_out;
+        DIAG.OCEAN.QSW_in(diag_ind) = OCEAN.Q_SW_in;
+        DIAG.OCEAN.QLW_in(diag_ind) = OCEAN.Q_LW_in;
+        
+        DIAG.OCEAN.Qlead(diag_ind) = OCEAN.Q_lead;
+        DIAG.OCEAN.Qsurf_at(diag_ind) = OCEAN.Q_surf_at;
+        DIAG.OCEAN.Qsurf_ml(diag_ind) = OCEAN.Q_surf_ml;
+        
+        DIAG.OCEAN.Q_mi(diag_ind) = OCEAN.Q_mi; 
+        DIAG.OCEAN.Q_ml_out(diag_ind) = OCEAN.Q_ml_out;
+        DIAG.OCEAN.S_ml_out(diag_ind) = OCEAN.S_ml_out; 
+        
+        DIAG.OCEAN.T_s(diag_ind) = OCEAN.T_s; 
+        
+        DIAG.OCEAN.H_ml(diag_ind) = OCEAN.H_ml;
+        
+        DIAG.OCEAN.Evap(diag_ind) = OCEAN.Evap;
+        DIAG.OCEAN.db(diag_ind) = OCEAN.deltaB;
         
     end
     

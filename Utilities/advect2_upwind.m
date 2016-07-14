@@ -136,7 +136,7 @@ end
 
 [du_out,lossl,lossu] = correctedge(du,flagrcorr,flaghcorr);
 
-du_out = du_out;
+du_out_1 = du_out;
 lossl = lossl;
 lossu = lossu;
 

@@ -4,11 +4,6 @@ dens = OCEAN.EOS(OCEAN.T,OCEAN.S);
 
 prefac = OCEAN.cp_w * OCEAN.H * dens;
 
-% The ocean heating is the THERMO heating. 
-% In thermodynamics package, THERMO.Q_o has been updated to cool the
-% water if this will bring it to the freezing point and lead to pancake
-% formation. If this is the case, there will be no residual cooling to
-% decrease the water temperature.
 
 if ~THERMO.DO
     

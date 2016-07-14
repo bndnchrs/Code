@@ -71,6 +71,8 @@ while counter < WAVES.maxcounts
     % This now is the array where pairs of values are maxes and mins
     extremelocs = sort([minloc maxloc]);
     
+    extremelocs = unique(extremelocs); 
+    
     % The values in space of each extreme point, for each H
     extremex = repmat(X(extremelocs),[length(FSTD.H) 1]) ;
     % The SSH values of each extreme point, for each H
@@ -134,10 +136,10 @@ for jind = 1:size(abovelocs,1)
         
         [A{jind},edges{jind}]  = histcounts(dX{jind},[FSTD.Rint Inf]);
         WAVES.bin_cts(jind,:) = A{jind};
-        cens = dX{jind} > max(FSTD.Rmid); 
+        cens = dX{jind} > max(FSTD.Rmid);
         smoothcts(jind,:) = ksdensity(dX{jind},FSTD.Rmid);
         if sum(smoothcts(jind,:)) == 0
-            smoothcts(jind,:) = A{jind}; 
+            smoothcts(jind,:) = A{jind};
         end
         
     else
@@ -174,7 +176,7 @@ if sum(abovelocs(:)) > 1
             % The FSD is the relative proportion of counts for all sizes
             % smaller than size i, and it is normalized to one.
             WAVES.F(i,j,:) = [Frac(j,1:i) zeros(1,length(FSTD.Rmid)-i)]';
-            WAVES.F(i,j,:) = squeeze(WAVES.F(i,j,:))'.*FSTD.dR / sum(eps + squeeze(WAVES.F(i,j,:))'.*FSTD.dR);
+            WAVES.F(i,j,:) = squeeze(WAVES.F(i,j,:))'.*FSTD.dR / sum(squeeze(WAVES.F(i,j,:))'.*FSTD.dR);
             
             % If there aren't any of these, so that we get a NaN, just set
             % it to zero.
@@ -185,7 +187,7 @@ if sum(abovelocs(:)) > 1
             % Now the fraction of domain covered in floes of size i that
             % will fracture is the total length of fracture lengths smaller
             % than i, divided by the total length of all fractures.
-            WAVES.Omega(i,j) = sum(FSTD.Rmid(1:i).*WAVES.bin_cts(jind,1:i)) / sum(eps + FSTD.Rmid.*WAVES.bin_cts(jind,:));
+            WAVES.Omega(i,j) = sum(FSTD.Rmid(1:i).*WAVES.bin_cts(j,1:i)) / sum(eps + FSTD.Rmid.*WAVES.bin_cts(j,:));
             
         end
     end
@@ -205,17 +207,26 @@ if sum(abovelocs(:)) > 1
             % The time rate of change of psi(k,j), therefore, is this
             % divided by the bin area,
             % (1/tau) * OMEGA(i,j) * Psi(i,j) * dA(i,j) * F(i,j,k) / dA(k,j)
-            dpsi = (1/WAVES.tau) * WAVES.Omega(r1,h1) * FSTD.psi(r1,h1)  ;
+            dpsi = (1/WAVES.tau) * WAVES.Omega(r1,h1) * FSTD.psi(r1,h1);
             
             
-            WAVES.In(:,h1) = WAVES.In(:,h1) + dpsi * FSTD.dA(r1,h1) * squeeze(WAVES.F(r1,h1,:)) ./ FSTD.dA(:,h1);
+            
+            dpsi_fsd = dpsi * FSTD.dA(r1,h1) * squeeze(WAVES.F(r1,h1,:)) ./ FSTD.dA(:,h1);
+           
+            if abs(sum(dpsi_fsd .* FSTD.dA(:,h1)) - dpsi * FSTD.dA(r1,h1)) > 1e-10
+                disp('uh')
+            end
+            
+            
+            WAVES.In(:,h1) = WAVES.In(:,h1) + dpsi_fsd;
             % And the outgoing is simply Omega/tau * psi
             WAVES.Out(r1,h1) = dpsi;
+            
             
         end
     end
     
-    
+  
 end
 
 WAVES.diff = WAVES.In - WAVES.Out;

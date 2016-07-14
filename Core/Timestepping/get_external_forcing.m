@@ -2,6 +2,11 @@
 % This routing loads in the strain rate at each timestep as well as the
 % thermodynamic input
 
+if OCEAN.DO
+    % Get ocean fields
+   Ocean_Forcing;  
+end
+
 if THERMO.DO
     
     % Get the thermodynamic forcing
