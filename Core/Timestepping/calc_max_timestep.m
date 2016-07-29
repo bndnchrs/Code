@@ -14,7 +14,7 @@ end
 
 % If there is an error, dt_temp comes back as a string. We then error
 % ourselves out.
-if strcmp(OPTS.dt_temp,'dt')
+if isnan(dt_temp)
     FSTD.eflag = 1;
     fprintf('Cut timestep is negative at timestep %d',FSTD.i);
 end

@@ -268,9 +268,12 @@ if MECH.eps_I < 0
     % When there is convergence, we have no new ice that is added so no
     % advective part
     MECH.convdiv = 0;
+    
 else
+    
     % When there is divergence, we lose ice since there is advection out
     MECH.convdiv = 1;
+
 end
 
 if ~ADVECT.DO

@@ -83,7 +83,7 @@ if THERMO.dosemtner
     
     % Now we have the net heat flux at the ice surface. This should
     % be zero unless there is surface melting
-    EXFORC.Q_ic = THERMO.surf_HF(FSTD.Hmid);
+    EXFORC.Q_ic = THERMO.surf_HF;
     
 else % Just conserve energy
     

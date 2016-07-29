@@ -1,9 +1,14 @@
     %% Plot FSD as line plots
-    
+  cols = [228,26,28
+    55,126,184
+    77,175,74
+    152,78,163
+    255,127,0
+    155,155,155]/256;  
     
     if FSTD.i == OPTS.nt
         
-        OPTS.ax_FSD_line = subplot(323);
+        PLOTS.ax_FSD_line = subplot(323);
         
         
         hold on
@@ -38,7 +43,13 @@
         
         shading interp
         
+        plotter = sum(ADVECT.FSTD_in .* FSTD.dA,2) + eps; 
+        plotter = plotter ./ integrate_FSTD(ADVECT.FSTD_in,1,FSTD.dA,0); 
         
+        semilogy(DIAG.FSTD.R,plotter,'--','color',cols(3,:),'linewidth',2)
+        
+        set(gca,'yscale','log')
+        set(gca,'ylim',[1e-6 1])
         
         
         if WAVES.DO
@@ -52,6 +63,8 @@
             
         end
         
+        
+        
     end
     
     %% Plot ITD as line plots
@@ -59,7 +72,7 @@
     
     if FSTD.i == OPTS.nt
         
-        OPTS.ax_ITD_line = subplot(324);
+        PLOTS.ax_ITD_line = subplot(324);
         
         hold on
         
@@ -87,6 +100,13 @@
         legend(str)
         xlim([DIAG.FSTD.H(1) DIAG.FSTD.H(end)])
         % set(gca,'ylim',[llim 0])
+        
+        plotter = sum(ADVECT.FSTD_in .* FSTD.dA,1) + eps; 
+        plotter = plotter ./ integrate_FSTD(ADVECT.FSTD_in,1,FSTD.dA,0); 
+        
+        semilogy(FSTD.Hmid,plotter,'--','color',cols(3,:),'linewidth',2)
+        
+        set(gca,'yscale','log')
         
         shading interp
         

@@ -77,7 +77,7 @@ end
 %
 % end
 
-if OCEAN.DO && OCEAN.dopetty
+if OCEAN.DO
         
     % Q_lead is now the heat to the sea ice. It has the negative sign of
     % the heat flux leaving the ocean. 
@@ -87,11 +87,16 @@ if OCEAN.DO && OCEAN.dopetty
     % This is the net heat flux in the ocean region. 
     Q_open = OCEAN.Q_o + OCEAN.Q_lead;
     % This is the net heat flux to the ice from the ocean. 
-    Q_oi = OCEAN.Q_mi;
-    % This is the lateral component of the floe thermodynamics
-    Q_lat = Q_lead * lbrat;
-    % Same, for the basal. We add the heat flux from the ocean to this. 
-    Q_bas = Q_lead - Q_lat + Q_oi;
+     
+    % This is the lateral component of the floe thermodynamics. Partition
+    % the lateral transfer of heat from the surface layer and the vertical
+    % transfer of heat from the mixed layer
+    Q_lat = (Q_lead + OCEAN.Q_mi) * lbrat;
+    
+    Q_oi = OCEAN.Q_mi * (1 - lbrat);
+   
+    % Same, for the basal, which is just what is left over. 
+    Q_bas = Q_lead - Q_lat; %  + Q_oi;
     
     
 else

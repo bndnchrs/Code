@@ -1,97 +1,62 @@
-% This routine updates the ocean component of the model
+%% Now compute power budget
 
-dens = OCEAN.EOS(OCEAN.T,OCEAN.S);
+% Heat loss of mixed layer
 
-prefac = OCEAN.cp_w * OCEAN.H * dens;
+OCEAN.Q_ml_SW = (1 - OCEAN.alpha) * OCEAN.Io * (1 - exp(-OCEAN.kappa_w * OCEAN.H_ml)) * OCEAN.SW;
 
+OCEAN.Q_ml_out = ...
+    OCEAN.Q_surf_ml + ... % heat to surface ocean
+    OCEAN.Q_mi - ... % heat to surface ice
+    OCEAN.Q_ml_SW; % heat from SW
 
-if ~THERMO.DO
-    
-    error('Ocean heating on but not thermodynamics package. We have to quit')
-    
-    % If not, we can get the heat flux
-    % from somewhere else. Not included yet so we error out. 
-    
+% Thermodynamic change of ice volume
+FSTD.dV_ice = integrate_FSTD(THERMO.diff,FSTD.Hmid,FSTD.dA,0);
+
+% Evaporation from latent heat flux
+OCEAN.Evap =  OCEAN.Q_LH / (OCEAN.rho_a * OCEAN.L_v); 
+
+% Salinity loss of mixed layer
+OCEAN.S_ml_out = ...
+    (OPTS.rho_ice/OCEAN.rho) * (OCEAN.S_i - OCEAN.S)*FSTD.dV_ice ... % Change of salinity from ice formation/melting 
+    + (1 - FSTD.conc) * (OCEAN.Precip - OCEAN.Evap) * OCEAN.S; % Change of salinity from precip/evap
+
+g = 9.81; 
+
+OCEAN.w = (EXFORC.Hml(FSTD.i+1) - EXFORC.Hml(FSTD.i))/(OPTS.dt);
+
+OCEAN.deltaT = (OCEAN.T - OCEAN.T_b(OCEAN.H_ml));
+OCEAN.deltaS = (OCEAN.S - OCEAN.S_b(OCEAN.H_ml));
+
+wflag = 0; 
+if OCEAN.w > 0
+    wflag = 1; 
 end
 
-%% Calculate pancake growth if cooling
-
-% We want to calculate whether we will form pancakes or not. This replaces
-% the calculation of THERMO.pancakes in Thermo_Timestep.m
-
-% If we do, we first calculate how much heat would be required to cool the
-% water to its freezing point (OCEAN.q_to_frz) in a time dt_sub. 
-
-OCEAN.q_to_frz= (prefac /OPTS.dt_sub) * (OCEAN.Tfrz - OCEAN.T);
-
-% It should always be negative, sicne Tfrz < T. If it is not, then we
-% assume it is all basically frozen already. 
-
-if OCEAN.q_to_frz > 0
-    OCEAN.q_to_frz = 0; 
-end
-
-% If the heat flux that cools the mixed layer is greater in magnitude than
-% this required value, the amount larger than this leads to the formation
-% of ice pancakes. 
-
-if THERMO.Q_o <= OCEAN.q_to_frz
-    OCEAN.panQ = THERMO.Q_o - OCEAN.q_to_frz;
-    OCEAN.Q_o = OCEAN.q_to_frz;
+% Turbulent Heating from below
+if OCEAN.compute_turb_deep
+OCEAN.w_turb = OCEAN.kappa_turb / (OCEAN.H_ml);
 else
-    OCEAN.panQ = 0; 
-    OCEAN.Q_open = THERMO.Q_o;
+    OCEAN.w_turb = 0; 
 end
 
-% Ocean.Q is now the heating applied to the ocean
+% Time evolution of salinity/temp
+OCEAN.Q_base_mix = OCEAN.rho * OCEAN.cp_w * ...
+    (OCEAN.w_turb + wflag * OCEAN.w) * ...
+    (OCEAN.T_b(OCEAN.H_ml) - OCEAN.T); 
 
-% There is a heat flux due to restoring to the initial temperature
+OCEAN.S_base_mix = (OCEAN.w_turb + wflag * OCEAN.w)* ...
+    (OCEAN.S_b(OCEAN.H_ml) - OCEAN.S);
 
-OCEAN.Q_rest = -(prefac/OCEAN.lambda_rest) * (OCEAN.T - OCEAN.T_rest);
+OCEAN.dSdt = (1 / OCEAN.H_ml) * ...
+    (-OCEAN.S_ml_out + OCEAN.S_base_mix); 
 
-%% Calculate Temperature Tendency
+OCEAN.dTdt = 1 / (OCEAN.rho * OCEAN.cp_w * OCEAN.H_ml) * ...
+    (- OCEAN.Q_ml_out + OCEAN.Q_base_mix); 
 
-% The time rate of change of ocean temperature is now the sum of three heat
-% fluxes
 
-% OCEAN.Q_open - The heating from 
-% OCEAN.Q_rest - the restoring heat flux to the deep or lower latitude
-% waters
-% OCEAN.Qoi - The heat flux exchanged between the ocean and the sea ice
+if ADVECT.DO && OCEAN.advect_oc
+    
+    OCEAN.dTdt = OCEAN.dTdt + OCEAN.ustar * (OCEAN.T_ml_in - OCEAN.T_ml); 
+    OCEAN.dSdt = OCEAN.dSdt + OCEAN.ustar * (OCEAN.S_ml_in - OCEAN.S_ml); 
 
-OCEAN.dTdt = (1/prefac) * (OCEAN.Q_open + OCEAN.Q_rest);
-
-% If there is some heat flux to the pancakes, we make them out of it. 
-
-if OCEAN.panQ < 0 
-    % This is assuming they are all the same size and thickness. 
-    OCEAN.pancakes = -OCEAN.panQ / (OPTS.L_f * OPTS.rho_ice * OPTS.h_p);
-else
-    OCEAN.pancakes = 0; 
 end
-
-% Pancake Growth array - same as in Thermo_Timestep.m
-OCEAN.pancake_growth = 0*FSTD.meshR;
-OCEAN.pancake_growth(THERMO.panloc_r,THERMO.panloc_h) ... 
-    = OCEAN.pancakes*OPTS.dt_sub;
-
-% In case we just have a single thickness category, these pancakes go there
-OCEAN.dV_max_pancake = sum(OCEAN.pancake_growth(:,end)/OPTS.dt_sub)*OPTS.h_p;
-OCEAN.V_max_in =  OCEAN.dV_max_pancake;
-
-% The total dFSD/dt from the ocean. This is usually zero unless there are
-% pancakes
-OCEAN.diff = (1/OPTS.dt_sub) * (OCEAN.pancake_growth);
-OCEAN.opening = -sum(OCEAN.diff(:));
-
-%% Calculate Salinity Tendency
-% This must happen as the last item in the code FSTD_Timestep. This is
-% because the update to salinity comes from the change in the total ice
-% volume and therefore needs FSTD.diff
-
-% We calculate changes in salinity from changes in ice volume. if pancakes
-% get formed, we need to add them in here. This is volume per unit time. 
-FSTD.dV_ice = sum_FSTD(FSTD.diff + OCEAN.diff,FSTD.Hmid,0);
-
-% Time rate of change of salinity
-OCEAN.dSdt = OCEAN.S * (OPTS.rho_ice/dens) * (1 / OCEAN.H) * FSTD.dV_ice;

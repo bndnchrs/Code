@@ -1,6 +1,6 @@
 %% OCEAN_FORCING
 
-if OCEAN.dopetty && (~isfield(THERMO,'fixed_Q') || ~THERMO.fixQ)
+if OCEAN.DO && (~isfield(THERMO,'fixed_Q') || ~THERMO.fixQ)
     
     % need to make sure that we aren't fixing the heat flux
     

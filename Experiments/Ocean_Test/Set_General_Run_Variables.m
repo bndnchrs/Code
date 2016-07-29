@@ -16,10 +16,10 @@ ADVECT = struct();
 % Variables that support the semtner thermodynamic package
 THERMO.dosemtner = 1; 
 
-OCEAN.dopetty = 1; 
+OPTS.nt = 120*24; 
+OPTS.dt = 3600;
 
-OPTS.nt = 120; 
-OPTS.dt = 43200;
-
-DIAG.DO_PLOT_FSTD = 0; 
+DIAG.DO_PLOT_FSTD = 1; 
 DIAG.DO_PLOT_OCEAN = 1; 
+
+OCEAN.compute_turb_deep = 1; 

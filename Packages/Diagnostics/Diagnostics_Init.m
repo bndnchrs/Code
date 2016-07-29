@@ -4,16 +4,20 @@
 % it must also be added to the script FSTD_Diagnostics.m;
 
 % Concerns whether we plot out output. Default is no.
-if ~isfield(DIAG,'DO_PLOT_FSTD')
-    DIAG.DO_PLOT_FSTD = 0;
+if ~isfield(DIAG,'PLOT_FSTD')
+    DIAG.PLOT_FSTD = 0;
 end
 
-if ~isfield(DIAG,'DO_PLOT_OCEAN')
-    DIAG.DO_PLOT_OCEAN = 0;
+if ~isfield(DIAG,'PLOT_OCEAN')
+    DIAG.PLOT_OCEAN = 0;
 end
 
-if ~isfield('DIAG','plot_realtime')
-    DIAG.plot_realtime = 1;
+if ~isfield(DIAG,'plot_realtime')
+    DIAG.plot_realtime = 0;
+end
+
+if ~isfield(DIAG,'PLOT_OC_PROF')
+    DIAG.PLOT_OC_PROF = 0;
 end
 
 if FSTD.DO

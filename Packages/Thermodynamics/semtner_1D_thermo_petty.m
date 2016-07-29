@@ -48,7 +48,7 @@ for i = 1:length(FSTD.Hmid)
     % The surface heat flux from the balance of fluxes - conductive
     LW_out = @(T_i) sigma*(T_i+273.14).^4;
     
-    if OCEAN.DO && OCEAN.dopetty
+    if OCEAN.DO
         
         SH_out = @(T) OCEAN.do_SH * OCEAN.rho_a * OCEAN.c_a * OCEAN.CD_i * OCEAN.U_a * (T - OCEAN.T_a);
         LH_out = @(T) OCEAN.do_LH * OCEAN.rho_a * OCEAN.L_s * OCEAN.CD_i * OCEAN.U_a * (OCEAN.qsat(T) - OCEAN.q_a);
@@ -56,7 +56,7 @@ for i = 1:length(FSTD.Hmid)
         LW_in = OCEAN.epsilon_i * OCEAN.LW;
         SW_in = (1 - OCEAN.alpha_i) * OCEAN.SW;
         
-        THERMO.surf_HF = @(T) ...
+        surf_HF = @(T) ...
             LW_in + ... % Longwave absorption at ice surface
             SW_in - ... % Shortwave absorption at ice surface
             LH_out(T) - ... % Latent heat flux from ice surface
@@ -65,19 +65,19 @@ for i = 1:length(FSTD.Hmid)
             cond_HF(T); % Conductive heat flux out of ice surface
     else
     
-    THERMO.surf_HF = @(T_i) EXFORC.Q_ic_noLW - cond_HF(T_i) - LW_out(T_i);
+    surf_HF = @(T_i) EXFORC.Q_ic_noLW - cond_HF(T_i) - LW_out(T_i);
     
     end
     
     % Find the temperature which equalizes the conductive flux and the
     % surface heat balance, near T_0.     
-    THERMO.T_ice(i) = fzero(THERMO.surf_HF,T_ice); % New ice temperature
+    THERMO.T_ice(i) = fzero(surf_HF,T_ice); % New ice temperature
  %%  Now fix if the temperature would allow for melting
     if THERMO.T_ice(i) > 0 % melting point of fresh sea ice
         % Set the temperature to 0
         THERMO.T_ice(i) = 0;
         % Calculate the budget at 0 temperature
-        THERMO.Q_vert(i) = THERMO.surf_HF(THERMO.T_ice(i)); % >0 when not balanced (THERMO.T_ice = 0).
+        THERMO.Q_vert(i) = surf_HF(THERMO.T_ice(i)); % >0 when not balanced (THERMO.T_ice = 0).
         % Includes the conductive heat flux
         THERMO.Q_cond(i) = cond_HF(THERMO.T_ice(i)); % < 0 almost always.
         
@@ -101,4 +101,5 @@ end
 % Lose thickess due to heat flux from ice surface to ice base
 THERMO.dhdt_base = -(THERMO.Q_bas/qbase + THERMO.Q_cond / qbase); 
     
+THERMO.surf_HF = surf_HF(FSTD.Hmid); 
     

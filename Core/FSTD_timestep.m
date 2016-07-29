@@ -1,5 +1,4 @@
-
-function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT] = FSTD_timestep(FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT)
+function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT,PLOTS] = FSTD_timestep(FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT,PLOTS)
 % Updated 12/8/2015 - Chris Horvat
 
 % This code executes a single predefined timestep of the joint model by
@@ -63,7 +62,7 @@ while OPTS.dt_sub > 0
         
         if OCEAN.DO
             % Get the heat fluxes that are appropriate
-            OCEAN = Ocean_Fluxes_Petty(OCEAN,OPTS,FSTD);
+            OCEAN = Ocean_Fluxes(OCEAN,OPTS,FSTD);
         
         end
         % This outputs diff_thermo
@@ -106,7 +105,7 @@ while OPTS.dt_sub > 0
     
     if OCEAN.DO && THERMO.DO
      
-        Ocean_Timestep_Petty; 
+        Ocean_Timestep; 
 
     end
         

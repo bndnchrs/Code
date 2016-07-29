@@ -8,22 +8,28 @@ THERMO.Mn1 = 0;
 
 if THERMO.DO
     %%
-    if THERMO.mergefloes && THERMO.drdt >= 0 && FSTD.conc <= 1
+    if THERMO.mergefloes && THERMO.drdt >= 0 && FSTD.conc <= .99
         %%
         % This is a flag, and we must be freezing in order to merge floes.
         % If the concentration is equal to 1, we must also quit
         
-        % get the mean reciprocal size (int r f(r) dr)
-        THERMO.Mn1 = integrate_FSTD(FSTD.psi,1./FSTD.meshRmid,FSTD.dA,0);
-        
-        
-        % This is the total consolidated area, divided by the ice
-        % concentration.
-        THERMO.alphamerge = 2 * THERMO.drdt * THERMO.Mn1 / (1 - integrate_FSTD(FSTD.psi,1,FSTD.dA,0) + eps);
-        
+        %% This is the older method, maybe not right. 
+% %         % get the mean reciprocal size (int r f(r) dr)
+% %         THERMO.Mn1 = integrate_FSTD(FSTD.psi,1./FSTD.meshRmid,FSTD.dA,0);
+% %         
+% %         
+% %         % This is the total consolidated area, divided by the ice
+% %         % concentration.
+% %         THERMO.alphamerge = 2 * THERMO.drdt * THERMO.Mn1 / (1 - integrate_FSTD(FSTD.psi,1,FSTD.dA,0) + eps);
+% %         
         % If the ice concentration is very close to 1, this becomes a
         % problem. To get around this the most ice that can merge is simply
         % equal to 50% of what exists. This will happen rarely
+        
+        THERMO.cdot = integrate_FSTD(THERMO.diff,1,FSTD.dA,0);
+        THERMO.phi = 1 - integrate_FSTD(FSTD.psi,1,FSTD.dA,0);
+        
+        THERMO.alphamerge = THERMO.cdot / (THERMO.phi^2);
         
         if THERMO.alphamerge >= 1
             

@@ -20,27 +20,45 @@ if FSTD.i == 1
         179,0,0
         127,0,0]/256;
     
-    colormap(cmap);
     
-    if DIAG.DO_PLOT_FSTD
+    if DIAG.PLOT_OCEAN
         
         
-        OPTS.plot_all = figure;
-        OPTS.ax_FSD = subplot(321);
-        OPTS.ax_ITD = subplot(322);
-        OPTS.ax_vol = subplot(3,4,9);
-        OPTS.ax_mfs = subplot(3,4,12);
-        OPTS.ax_conc = subplot(3,4,10);
-        OPTS.ax_thick = subplot(3,4,11);
+        PLOTS.plot_all = figure;
         
-    else
+        pos = [12 8];
+        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
+        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
         
-        if DIAG.DO_PLOT_OCEAN
-            
-            OPTS.plot_oc = figure;
-            
-        end
+        
+        PLOTS.ax_FSD = subplot(321);
+        PLOTS.ax_ITD = subplot(322);
+        PLOTS.ax_vol = subplot(3,4,9);
+        PLOTS.ax_mfs = subplot(3,4,12);
+        PLOTS.ax_conc = subplot(3,4,10);
+        PLOTS.ax_thick = subplot(3,4,11);
+        
+        colormap(cmap);
+        
     end
+    
+    if DIAG.PLOT_OCEAN
+        
+        PLOTS.plot_oc = figure;
+        colormap(cmap);
+        set(gcf,'windowstyle','normal','position',[pos(1) 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
+        set(gcf,'windowstyle','normal','position',[pos(1) 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
+        
+        
+        if DIAG.PLOT_OC_PROF
+            PLOTS.oc_prof = figure;
+            colormap(cmap);
+            set(gcf,'windowstyle','normal','position',[2*pos(1) 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
+            set(gcf,'windowstyle','normal','position',[2*pos(1) 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
+        end
+        
+    end
+    
     
 end
 
@@ -51,10 +69,10 @@ if FSTD.i == OPTS.nt
     nplots = 7;
     skip = ceil(OPTS.nt/nplots);
     % Plotting times
-    if ~isfield(OPTS,'plot_inds')
+    if ~isfield(PLOTS,'plot_inds')
         inds = 1:skip:size(DIAG.FSTD.psi,3);
     else
-        inds = OPTS.plot_inds;
+        inds = PLOTS.plot_inds;
     end
     
     cplots = [103,0,31
@@ -85,9 +103,9 @@ end
 
 %%
 
-if DIAG.DO_PLOT_FSTD && (mod(FSTD.i,skip_contour) == 1 || FSTD.i == OPTS.nt || skip_contour == 1)
+if DIAG.PLOT_FSTD && ((DIAG.plot_realtime && mod(FSTD.i,skip_contour) == 1) || FSTD.i == OPTS.nt || skip_contour == 1)
     
-    figure(OPTS.plot_all)
+    figure(PLOTS.plot_all)
     
     FD_plot_contour_FSDITD;
     
@@ -95,47 +113,39 @@ if DIAG.DO_PLOT_FSTD && (mod(FSTD.i,skip_contour) == 1 || FSTD.i == OPTS.nt || s
     
     FD_plot_single_variables;
     
-    if DIAG.plot_realtime
-        
-        drawnow
-        
-    end
-    
 end
 
-if DIAG.DO_PLOT_OCEAN && (mod(FSTD.i,skip_contour) == 1 || FSTD.i == OPTS.nt || skip_contour == 1)
-    
-   figure(OPTS.plot_oc)
 
+%%
+if DIAG.PLOT_OCEAN && ((DIAG.plot_realtime && mod(FSTD.i,skip_contour) == 1) || FSTD.i == OPTS.nt || skip_contour == 1)
+    
+    figure(PLOTS.plot_oc)
+    
     
     FD_plot_ocean_stats;
     
-    if DIAG.plot_realtime
-        
-        drawnow
-        
-    end
     
+    drawnow
 end
 
 if FSTD.i == OPTS.nt
     
-    if DIAG.DO_PLOT_FSTD
+    if DIAG.PLOT_FSTD
         
-        figure(OPTS.plot_all)
+        figure(PLOTS.plot_all)
         drawnow
         
         %   legend(ax_vol,'Predicted - Advect','Predicted - Thermo','Predicted - Both','Calculated');
         
-        legend(OPTS.ax_mfs,[OPTS.h5 OPTS.h6],'By Number','By Area');
-        legend(OPTS.ax_thick,[OPTS.h4 OPTS.h42],'Mean','Max');
+        legend(PLOTS.ax_mfs,[PLOTS.h5 PLOTS.h6],'By Number','By Area');
+        legend(PLOTS.ax_thick,[PLOTS.h4 PLOTS.h42],'Mean','Max');
         
         
-        pos = [16 16];
-        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
-        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
+        %         pos = [16 16];
+        %         set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
+        %         set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
         
-        if isfield(OPTS,'figpath')
+        if isfield(OPTS,'figpath') && OPTS.saveplots
             
             saveas(gcf,[OPTS.figpath '.pdf'])
             saveas(gcf,[OPTS.figpath '.fig'])
@@ -145,16 +155,16 @@ if FSTD.i == OPTS.nt
         
     end
     
-    if DIAG.DO_PLOT_OCEAN
+    if DIAG.PLOT_OCEAN
         
-        figure(OPTS.plot_oc)
+        figure(PLOTS.plot_oc)
         drawnow
         
-        pos = [16 16];
-        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
-        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
+        %         pos = [16 16];
+        %         set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
+        %         set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
         
-        if isfield(OPTS,'figpath')
+        if isfield(OPTS,'figpath') && OPTS.saveplots
             
             saveas(gcf,[OPTS.figpath '-ocean.pdf'])
             saveas(gcf,[OPTS.figpath '-ocean.fig'])

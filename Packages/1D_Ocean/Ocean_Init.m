@@ -2,14 +2,14 @@
 % this function initializes the ocean component of the FSTD model
 
 if ~isfield(OCEAN,'Z')
-
-    OCEAN.Z = -1:-1:-500; 
-
+    
+    OCEAN.Z = 1:500;
+    
 end
 
 if ~isfield(OCEAN,'H_ml')
     
-    OCEAN.H_ml = 50; % Mixed Layer Depth of the ocean
+    OCEAN.H_ml = EXFORC.Hml(1); % Mixed Layer Depth of the ocean
     
 end
 
@@ -22,6 +22,17 @@ end
 if ~isfield(OCEAN,'lambda_rest')
     % The restoring timescale to deep ocean values
     OCEAN.lambda_rest = 7*86400;
+    
+end
+
+if ~isfield(OCEAN,'compute_turb_deep')
+    OCEAN.compute_turb_deep = 0; 
+end
+
+if ~isfield(OCEAN,'kappa_turb')
+    % The turbulent exchange with the deep layer below. Pick length scale
+    % of 100 meters, time scale of 60 days. 
+    OCEAN.kappa_turb = 5e-4;
     
 end
 
@@ -76,7 +87,7 @@ if ~isfield(OCEAN,'T_0')
 end
 
 if ~isfield(OCEAN,'S_0')
-    OCEAN.S_0 = 32; % ppt Reference Salinity for linear EOS
+    OCEAN.S_0 = 34; % ppt Reference Salinity for linear EOS
 end
 
 if ~isfield(OCEAN,'EOS')
@@ -107,74 +118,83 @@ if ~isfield(OCEAN,'do_LH');
     OCEAN.do_LH = 0;
 end
 
-if isfield(OCEAN,'dopetty') && OCEAN.dopetty
 
-    if ~isfield(OCEAN,'T_b')
+if ~isfield(OCEAN,'T_b')
     
-        
-        OCEAN.T_b = @(z) -1; %+ 1.8*tanh((z)/50); 
     
-    end
-    
-    if ~isfield(OCEAN,'S_b')
-        
-        
-        OCEAN.S_b = @(z) 33; % + 1*tanh((z)/30);
-        
-    end
-    
-    % Make sure we have external forcing fields that are required
-    if ~isfield(EXFORC,'QATM')
-        EXFORC.QATM = zeros(1,OPTS.nt);
-    end
-    
-    if ~isfield(EXFORC,'TATM')
-        EXFORC.TATM = zeros(1,OPTS.nt);
-    end
-    
-    if ~isfield(EXFORC,'UATM')
-        EXFORC.UATM = zeros(1,OPTS.nt);
-    end
-    
-    if ~isfield(EXFORC,'PATM')
-        EXFORC.PATM = zeros(1,OPTS.nt) + 100; % kPA
-    end
-    
-    if ~isfield(EXFORC,'QLW')
-        EXFORC.QLW = zeros(1,OPTS.nt);
-    end
-    
-    if ~isfield(EXFORC,'QSW')
-        EXFORC.QSW = zeros(1,OPTS.nt);
-    end
-    
-    if ~isfield(EXFORC,'PRECIP')
-        EXFORC.PRECIP = zeros(1,OPTS.nt); % m/s
-    end
-        
-    if ~isfield(OCEAN,'S_i')
-        OCEAN.S_i = 5; 
-    end
-    
-    % We want to use the petty (2013) mixed layer model.
-    OCEAN.rho_a = 1.275; %kg/m^3 - density of air
-    OCEAN.c_a = 1005; % J /kg K - specific heat capacity of air
-    OCEAN.cw = 4190; % " - specific heat capacity of water
-    OCEAN.CD_o = .001; % Turbulent transfer coeff for oce - atmosphere
-    OCEAN.CD_i = .0013; % " for ice-atmosphere
-    OCEAN.epsilon = .97; % emissivity of ocean
-    OCEAN.epsilon_i = 1; % emissivity of ice
-    OCEAN.alpha = .06; % albedo of ocean
-    OCEAN.alpha_i = .75; % albedo of ice
-    OCEAN.Io = .45; % Surface permissivity
-    OCEAN.L_v = 2.501 * 10^6; % latent heat of vaporisation
-    OCEAN.L_s = 2.834 * 10^6; % latent heat of sublimation
-    OCEAN.ch = .006; % Stanton number for transfer of heat b/w mixed layer and sea ice
-    OCEAN.kappa_w = .1; % Extinction coefficient of seawater
-    OCEAN.c1 = .8; % wind stirring transfer
-    OCEAN.H_w = 10; % depth of wind reach
-    OCEAN.c_m = .03; % background turbulence
-    % Formula for the partial pressure of water at temperature T
-    OCEAN.pv = @(T) 2.53 * 10^8 * exp(1).^(-5420 ./ (T + 273));
+    OCEAN.T_b = @(z) 0 + (z>200).*(z-200)/200; %+ 1.8*tanh((z)/50);
     
 end
+
+if ~isfield(OCEAN,'S_b')
+    
+    
+    OCEAN.S_b = @(z) 33 + (z>20).*(1.4 + .2*(z)/500); % + 1*tanh((z)/30);
+    
+end
+
+% Make sure we have external forcing fields that are required
+if ~isfield(EXFORC,'QATM')
+    EXFORC.QATM = zeros(1,OPTS.nt);
+end
+
+if ~isfield(EXFORC,'TATM')
+    EXFORC.TATM = zeros(1,OPTS.nt);
+end
+
+if ~isfield(EXFORC,'UATM')
+    EXFORC.UATM = zeros(1,OPTS.nt);
+end
+
+if ~isfield(EXFORC,'PATM')
+    EXFORC.PATM = zeros(1,OPTS.nt) + 100; % kPA
+end
+
+if ~isfield(EXFORC,'QLW')
+    EXFORC.QLW = zeros(1,OPTS.nt);
+end
+
+if ~isfield(EXFORC,'QSW')
+    EXFORC.QSW = zeros(1,OPTS.nt);
+end
+
+if ~isfield(EXFORC,'PRECIP')
+    EXFORC.PRECIP = zeros(1,OPTS.nt); % m/s
+end
+
+if ~isfield(OCEAN,'S_i')
+    OCEAN.S_i = 5;
+end
+
+if ~isfield(OCEAN,'T_ml_in')
+    OCEAN.T_ml_in = OCEAN.T_0; 
+end
+
+if ~isfield(OCEAN,'S_ml_in')
+    OCEAN.S_ml_in = OCEAN.S_0; 
+end
+
+if ~isfield(OCEAN,'advect_oc')
+    OCEAN.advect_oc = 0; 
+end
+
+% We want to use the petty (2013) mixed layer model.
+OCEAN.rho_a = 1.275; %kg/m^3 - density of air
+OCEAN.c_a = 1005; % J /kg K - specific heat capacity of air
+OCEAN.cw = 4190; % " - specific heat capacity of water
+OCEAN.CD_o = .001; % Turbulent transfer coeff for oce - atmosphere
+OCEAN.CD_i = .0013; % " for ice-atmosphere
+OCEAN.epsilon = .97; % emissivity of ocean
+OCEAN.epsilon_i = 1; % emissivity of ice
+OCEAN.alpha = .06; % albedo of ocean
+OCEAN.alpha_i = .75; % albedo of ice
+OCEAN.Io = .45; % Surface permissivity
+OCEAN.L_v = 2.501 * 10^6; % latent heat of vaporisation
+OCEAN.L_s = 2.834 * 10^6; % latent heat of sublimation
+OCEAN.ch = .006; % Stanton number for transfer of heat b/w mixed layer and sea ice
+OCEAN.kappa_w = .1; % Extinction coefficient of seawater
+OCEAN.c1 = .8; % wind stirring transfer
+OCEAN.H_w = 10; % depth of wind reach
+OCEAN.c_m = .03; % background turbulence
+% Formula for the partial pressure of water at temperature T
+OCEAN.pv = @(T) 2.53 * 10^8 * exp(1).^(-5420 ./ (T + 273));

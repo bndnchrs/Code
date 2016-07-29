@@ -9,7 +9,7 @@ cols = [228,26,28
 %% Plot Ice Volume
 
 
-set(gcf,'currentaxes',OPTS.ax_vol);
+set(gcf,'currentaxes',PLOTS.ax_vol);
 
 if FSTD.i == 1
     
@@ -53,7 +53,7 @@ if FSTD.i == 1
         
     end
     
-    if THERMO.DO && ADVECT.DO
+    if THERMO.DO && ADVECT.DO && THERMO.fixQ
         
         
         % Compute the full solution
@@ -64,30 +64,42 @@ if FSTD.i == 1
         
     end
     
-    OPTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
-    OPTS.h2 = scatter(DIAG.FSTD.time(FSTD.i)/86400,DIAG.FSTD.Vtot(FSTD.i),200,'filled','markerfacecolor',cols(5,:));
+    PLOTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    PLOTS.h2 = scatter(DIAG.FSTD.time(FSTD.i)/86400,DIAG.FSTD.Vtot(FSTD.i),200,'filled','markerfacecolor',cols(5,:));
     
-    grid on
-    box on
-    xlabel('Time (days)')
-    title('Ice Volume')
-    ylabel('m^3/m^2')
-    set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
-    xlim([0 FSTD.time(end)/86400]);
-    a = get(gca,'ylim');
-    a(1) = 0;
-    set(gca,'ylim',a);
+    
 else
     
-    delete(OPTS.h1)
-    delete(OPTS.h2)
-    OPTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
-    OPTS.h2 = scatter(DIAG.FSTD.time(FSTD.i)/86400,DIAG.FSTD.Vtot(FSTD.i),200,'filled','markerfacecolor',cols(5,:));
+    if isfield(PLOTS,'h1')
+        
+        delete(PLOTS.h1)
+    end
+    
+    if isfield(PLOTS,'h2')
+        delete(PLOTS.h2)
+    end
+    
+    PLOTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    hold on
+    PLOTS.h2 = scatter(DIAG.FSTD.time(FSTD.i)/86400,DIAG.FSTD.Vtot(FSTD.i),200,'filled','markerfacecolor',cols(5,:));
+    hold off
     
 end
 
+grid on
+box on
+xlabel('Time (days)')
+title('Ice Volume')
+ylabel('m^3/m^2')
+set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
+xlim([0 FSTD.time(end)/86400]);
+a = get(gca,'ylim');
+a(1) = 0;
+set(gca,'ylim',a);
+
+
 %% Plot Ice Concentration
-set(gcf,'currentaxes',OPTS.ax_conc);
+set(gcf,'currentaxes',PLOTS.ax_conc);
 
 
 
@@ -115,27 +127,34 @@ if FSTD.i == 1
     end
     
     hold on
-    OPTS.h3 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.conc(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
-    grid on
-    box on
-    xlabel('Time (days)')
-    title('Ice Concentration')
-    ylabel('m^2/m^2')
-    set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
+    PLOTS.h3 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.conc(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
     
-    xlim([0 FSTD.time(end)/86400]);
-    ylim([0 1])
     
 else
+    if isfield(PLOTS,'h3')
+        
+        delete(PLOTS.h3)
+        
+    end
     
-    delete(OPTS.h3)
-    OPTS.h3 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.conc(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    PLOTS.h3 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.conc(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    
     
 end
+
+grid on
+box on
+xlabel('Time (days)')
+title('Ice Concentration')
+ylabel('m^2/m^2')
+set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
+xlim([0 FSTD.time(end)/86400]);
+ylim([0 1])
+
 %% Plot Ice Thickness
 
 
-set(gcf,'currentaxes',OPTS.ax_thick)
+set(gcf,'currentaxes',PLOTS.ax_thick)
 
 if FSTD.i == 1
     
@@ -164,35 +183,50 @@ if FSTD.i == 1
     
     
     hold on
-    OPTS.h4 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmean(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
-    OPTS.h42 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmax(1:FSTD.i),'-','color',cols(4,:),'linewidth',2);
+    PLOTS.h4 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmean(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
+    PLOTS.h42 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmax(1:FSTD.i),'-','color',cols(4,:),'linewidth',2);
     
-    grid on
-    box on
-    xlabel('Time (days)')
-    title('Ice Thickness')
-    ylabel('m')
-    set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
-    xlim([0 FSTD.time(end)/86400]);
     
 else
     
-    delete(OPTS.h4)
-    delete(OPTS.h42)
-
-    OPTS.h4 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmean(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
-    OPTS.h42 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmax(1:FSTD.i),'--','color',cols(4,:),'linewidth',2);
+    if isfield(PLOTS,'h4')
+        
+        
+        delete(PLOTS.h4)
+        
+    end
     
-    ylim auto
-    a = get(gca,'ylim');
-    a(1) = 0;
-    set(gca,'ylim',a);
+    if isfield(PLOTS,'h42')
+        
+        delete(PLOTS.h42)
+        
+    end
+    
+    PLOTS.h4 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmean(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    hold on
+    PLOTS.h42 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmax(1:FSTD.i),'--','color',cols(4,:),'linewidth',2);
+    hold off
+    
+    
+    
     
 end
 
+ylim auto
+a = get(gca,'ylim');
+a(1) = 0;
+set(gca,'ylim',a);
+grid on
+box on
+xlabel('Time (days)')
+title('Ice Thickness')
+ylabel('m')
+set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
+xlim([0 FSTD.time(end)/86400]);
+
 %% Plot Mean Floe Sizes
 
-set(gcf,'currentaxes',OPTS.ax_mfs)
+set(gcf,'currentaxes',PLOTS.ax_mfs)
 
 if FSTD.i == 1
     
@@ -200,9 +234,9 @@ if FSTD.i == 1
     
     
     
-    OPTS.h5 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeannum(1:FSTD.i),'-','color',cols(3,:),'linewidth',2);
+    PLOTS.h5 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeannum(1:FSTD.i),'-','color',cols(3,:),'linewidth',2);
     hold on
-    OPTS.h6 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeanarea(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
+    PLOTS.h6 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeanarea(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
     
     legend('By Number','By Area')
     
@@ -213,15 +247,15 @@ if FSTD.i == 1
         % This is R which is half the wavelength of the peak period
         R_longterm = FSTD.Rmid(b);
         plot(FSTD.time/86400,0*FSTD.time + R_longterm,'-k','linewidth',2)
-    
-        r_0 = DIAG.FSTD.Rmeanarea(1); 
+        
+        r_0 = DIAG.FSTD.Rmeanarea(1);
         
         tau_waves = WAVES.tau;
         
-        rbar = R_longterm + exp(1).^(-FSTD.time/tau_waves)*(r_0 - R_longterm); 
+        rbar = R_longterm + exp(1).^(-FSTD.time/tau_waves)*(r_0 - R_longterm);
         
-       % plot(FSTD.time/86400,rbar,'-','color',cols(5,:),'linewidth',2)
-
+        % plot(FSTD.time/86400,rbar,'-','color',cols(5,:),'linewidth',2)
+        
     end
     
     
@@ -247,8 +281,8 @@ if FSTD.i == 1
         r1_adv = r1num0 + (r1num1 - r1num0) * exp(1).^(-FSTD.time/tauadvect);
         r1_adv = r1_adv ./ N_adv;
         
-        OPTS.r0_pred = plot(FSTD.time/86400,r0_adv,'-','color',cols(1,:),'linewidth',2);
-        OPTS.r1_pred = plot(FSTD.time/86400,r1_adv,'-','color',cols(1,:),'linewidth',2);
+        PLOTS.r0_pred = plot(FSTD.time/86400,r0_adv,'-','color',cols(1,:),'linewidth',2);
+        PLOTS.r1_pred = plot(FSTD.time/86400,r1_adv,'-','color',cols(1,:),'linewidth',2);
         
         r0 = ADVECT.FSTD_in ./ (pi * FSTD.meshRmid.^2);
         
@@ -259,26 +293,41 @@ if FSTD.i == 1
         
     end
     
-    grid on
-    box on
-    xlabel('Time (days)')
-    title('Mean Floe Size')
-    ylabel('m')
-    set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
-    xlim([0 FSTD.time(end)/86400]);
     
 else
     
-    delete(OPTS.h5)
-    delete(OPTS.h6)
+    if isfield(PLOTS,'h5')
+        
+        delete(PLOTS.h5)
+        
+    end
     
-    OPTS.h5 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeannum(1:FSTD.i),'--','color',cols(3,:),'linewidth',2);
-    OPTS.h6 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeanarea(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    if isfield(PLOTS,'h6')
+        
+        delete(PLOTS.h6)
+        
+    end
     
-    ylim auto
-    a = get(gca,'ylim');
-    a(1) = 0;
-    set(gca,'ylim',a);
+    PLOTS.h5 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeannum(1:FSTD.i),'--','color',cols(3,:),'linewidth',2);
+    hold on
+    PLOTS.h6 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeanarea(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    hold off
+    
+    
+    
+    
     
 end
+ylim auto
+a = get(gca,'ylim');
+a(1) = 0;
+set(gca,'ylim',a);
+grid on
+box on
+xlabel('Time (days)')
+title('Mean Floe Size')
+ylabel('m')
+set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
+xlim([0 FSTD.time(end)/86400]);
+
 

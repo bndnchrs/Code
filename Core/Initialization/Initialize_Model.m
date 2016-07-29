@@ -70,6 +70,12 @@ if ~isfield(OPTS,'time')
     OPTS.time = linspace(OPTS.dt,OPTS.nt*OPTS.dt,OPTS.nt);
 end
 
+if ~isfield(OPTS,'saveplots')
+    
+    OPTS.saveplots = 1; 
+    
+end
+
 % Time Vector
 FSTD.time = OPTS.time; %s
 

@@ -1,10 +1,13 @@
-function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT] = Initialize_Packages(FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT)
+function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT,PLOTS] = Initialize_Packages(FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT)
 %% Initialize_Packages
 % This second-level program contains calls to the initialization schemes
 % for each process
 
 % Calculate the things like FSTD.conc and FSTD.psi
 Init_Psi; 
+
+%% Create a Plot structure
+PLOTS = struct; 
 
 %% Initialize the Thermodynamic Model Component
 
