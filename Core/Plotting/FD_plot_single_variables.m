@@ -64,7 +64,7 @@ if FSTD.i == 1
         
     end
     
-    PLOTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    PLOTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
     PLOTS.h2 = scatter(DIAG.FSTD.time(FSTD.i)/86400,DIAG.FSTD.Vtot(FSTD.i),200,'filled','markerfacecolor',cols(5,:));
     
     
@@ -79,12 +79,25 @@ else
         delete(PLOTS.h2)
     end
     
-    PLOTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    PLOTS.h1 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Vtot(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
     hold on
     PLOTS.h2 = scatter(DIAG.FSTD.time(FSTD.i)/86400,DIAG.FSTD.Vtot(FSTD.i),200,'filled','markerfacecolor',cols(5,:));
     hold off
     
 end
+
+if FSTD.i == OPTS.nt
+    
+    if ADVECT.DO
+    hold on
+    V_in = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid_i,FSTD.dA_i,0); % The total ice volume (area-weighted)
+    % Compute the advective-only solution
+    V_adv = V_in + 0*FSTD.time;
+    plot(FSTD.time/86400,V_adv,'--k','linewidth',2)
+    end
+    
+end
+
 
 grid on
 box on
@@ -137,8 +150,20 @@ else
         
     end
     
-    PLOTS.h3 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.conc(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    PLOTS.h3 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.conc(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
     
+    
+end
+
+if FSTD.i == OPTS.nt
+    
+    if ADVECT.DO
+    hold on
+    c0 = integrate_FSTD(ADVECT.FSTD_in,1,FSTD.dA,0); % The total ice volume (area-weighted)
+    % Compute the advective-only solution
+    c_adv = c0 + 0*FSTD.time;
+    plot(FSTD.time/86400,c_adv,'--k','linewidth',2)
+    end
     
 end
 
@@ -202,13 +227,24 @@ else
         
     end
     
-    PLOTS.h4 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmean(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    PLOTS.h4 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmean(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
     hold on
-    PLOTS.h42 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmax(1:FSTD.i),'--','color',cols(4,:),'linewidth',2);
+    PLOTS.h42 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Hmax(1:FSTD.i),'-','color',cols(4,:),'linewidth',2);
     hold off
     
     
     
+    
+end
+
+if FSTD.i == OPTS.nt
+    
+    if ADVECT.DO
+    hold on
+    h0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.Hmid_i,FSTD.dA,1);    % Compute the advective-only solution
+    h_adv = h0 + 0*FSTD.time;
+    plot(FSTD.time/86400,h_adv,'--k','linewidth',2)
+    end
     
 end
 
@@ -268,15 +304,15 @@ if FSTD.i == 1
         N_adv = n0 + (n1 - n0) * exp(1).^(-FSTD.time/tauadvect);
         
         
-        r0num0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.meshRmid,FSTD.dA,0);
-        r0num1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),FSTD.meshRmid,FSTD.dA,0);
+        r0num0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.meshRmid,FSTD.dA,1);
+        r0num1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1),FSTD.meshRmid,FSTD.dA,1);
         
         r0_adv = r0num0 + (r0num1 - r0num0) * exp(1).^(-FSTD.time/tauadvect);
         r0_adv = r0_adv ./ C_adv;
         
         
-        r1num0 = integrate_FSTD(ADVECT.FSTD_in ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,0);
-        r1num1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1) ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,0);
+        r1num0 = integrate_FSTD(ADVECT.FSTD_in ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,1);
+        r1num1 = integrate_FSTD(DIAG.FSTD.psi(:,:,1) ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,1);
         
         r1_adv = r1num0 + (r1num1 - r1num0) * exp(1).^(-FSTD.time/tauadvect);
         r1_adv = r1_adv ./ N_adv;
@@ -308,9 +344,9 @@ else
         
     end
     
-    PLOTS.h5 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeannum(1:FSTD.i),'--','color',cols(3,:),'linewidth',2);
+    PLOTS.h5 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeannum(1:FSTD.i),'-','color',cols(3,:),'linewidth',2);
     hold on
-    PLOTS.h6 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeanarea(1:FSTD.i),'--','color',cols(5,:),'linewidth',2);
+    PLOTS.h6 = plot(DIAG.FSTD.time(1:FSTD.i)/86400,DIAG.FSTD.Rmeanarea(1:FSTD.i),'-','color',cols(5,:),'linewidth',2);
     hold off
     
     
@@ -318,6 +354,28 @@ else
     
     
 end
+
+
+if FSTD.i == OPTS.nt
+    
+      
+    if ADVECT.DO
+        hold on
+        
+        r0num0 = integrate_FSTD(ADVECT.FSTD_in,FSTD.meshRmid,FSTD.dA,1);
+        r0_adv = r0num0 + 0*FSTD.time; 
+        plot(FSTD.time/86400,0*FSTD.time + r0_adv,'--k')
+
+                
+        r1num0 = integrate_FSTD(ADVECT.FSTD_in ./ (pi * FSTD.meshRmid.^2),FSTD.meshRmid,FSTD.dA,1);        
+        r1_adv = r1num0 + 0*FSTD.time;        
+        
+        plot(FSTD.time/86400,0*FSTD.time + r1_adv,'--k')
+        
+    end
+    
+end
+
 ylim auto
 a = get(gca,'ylim');
 a(1) = 0;

@@ -40,6 +40,10 @@ latSA = integrate_FSTD(FSTD.psi,2*FSTD.meshHmid./FSTD.meshRmid,FSTD.dA,0);
 
 lbrat = (latSA/(latSA + conc));
 
+if lbrat > 1
+    lbrat = 1; 
+end
+
 % If the concentration is zero, to avoid dividing by zero, we set lbrat to be
 % one and send all the heat to the sides of floes.
 if conc < eps
@@ -49,7 +53,7 @@ if conc < eps
 end
 
 % If the concentration is really close to one, we also set it to one.
-if abs(conc - 1) < 1e-3
+if abs(conc - 1) < 1e-8
     lbrat = 0;
 end
 
@@ -64,7 +68,7 @@ end
 % Al - the lead fraction
 % Ao - the true "open water" fraction that leads to pancake growth
 % subject to Ao + Al = phi
-[Al,Ao] = calc_lead_area(FSTD,THERMO);
+[THERMO.Al,THERMO.Ao] = calc_lead_area(FSTD,THERMO);
 
 % Now we need to have a minimal lead fraction at all times, since if the
 % concentration is very high we may not be able to melt any ice, even with
@@ -79,30 +83,34 @@ end
 
 if OCEAN.DO
         
-    % Q_lead is now the heat to the sea ice. It has the negative sign of
-    % the heat flux leaving the ocean. 
+    % Q_lead is now the heat to the sea ice. It is the total heating per
+    % unit of model grid. It has the negative sign of the heat flux that
+    % leaves the ocean. 
+    
     Q_lead = -OCEAN.Q_lead;
-    % Q_o is the heat flux in the ocean, so has the same sign
+    % Q_o is the net heat flux in the open water region
     Q_o = OCEAN.Q_o;
-    % This is the net heat flux in the ocean region. 
+    
+    % This reflects the net heat flux influencing the open water region
+    % that also can lead to ice formation
     Q_open = OCEAN.Q_o + OCEAN.Q_lead;
-    % This is the net heat flux to the ice from the ocean. 
-     
-    % This is the lateral component of the floe thermodynamics. Partition
-    % the lateral transfer of heat from the surface layer and the vertical
-    % transfer of heat from the mixed layer
+    
+    % The total heat flux per unit of grid that goes to lateral floe
+    % development is Q_lat. This is equal to the total flux from the
+    % surface layer plus the flux from the base of the ice, multiplied by
+    % lbrat. Positive means melting. 
     Q_lat = (Q_lead + OCEAN.Q_mi) * lbrat;
     
-    Q_oi = OCEAN.Q_mi * (1 - lbrat);
+    % The heat flux from the mixed layer to the ice is Q_oi
+    Q_oi = OCEAN.Q_mi;
    
-    % Same, for the basal, which is just what is left over. 
-    Q_bas = Q_lead - Q_lat; %  + Q_oi;
-    
+    % The heat flux (per square meter of grid) that leads to basal
+    % development is the total heat flux to the ice minus what goes to the
+    % lead region. Positive means melting. 
+    Q_bas = (Q_lead + OCEAN.Q_mi) - Q_lat; %  + Q_oi;
     
 else
-    
-    
-    
+    %% We aren't using the ocean model. 
     
     Q_open = Ao*EXFORC.Q_oc; % Net heat flux to open water, per square meter of grid.
     % Units are W/m^2.
@@ -173,7 +181,7 @@ else
     % multiplied by the total lead heat flux. This is the net heat flux that
     % goes to the sides of ice, per square meter of grid.
     Q_lat = Q_lead * lbrat;
-    
+   
     % The rest goes to the floe base. The net heat flux that goes to the base
     % of ice, per square meter of grid.
     Q_bas = Q_lead - Q_lat;

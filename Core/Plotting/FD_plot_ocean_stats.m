@@ -108,10 +108,13 @@ plot(DIAG.FSTD.time(2:FSTD.i)/86400,DIAG.OCEAN.Qsurf_ml(2:FSTD.i),'--','color',c
 plot(DIAG.FSTD.time(2:FSTD.i)/86400,DIAG.OCEAN.Q_mi(2:FSTD.i),'--','color',cols(4,:),'linewidth',2);
 plot(DIAG.FSTD.time(2:FSTD.i)/86400,-DIAG.OCEAN.QSW_in(2:FSTD.i),'--','color',cols(1,:),'linewidth',2);
 
+Q_net = DIAG.OCEAN.dV_thermo * (OPTS.L_f * OPTS.rho_ice); 
+
+plot(DIAG.FSTD.time(2:FSTD.i)/86400,Q_net(2:FSTD.i),'-k','linewidth',2);
 
 if FSTD.i == OPTS.nt
 
-legend({'Heat exchange in ML','Heat from below','Heat to Surface','Heat to Ice','Heat from SW'});
+legend({'Heat exchange in ML','Heat from below','Heat to Surface','Heat to Ice','Heat from SW','Net from Vol Loss'});
 
 end
 

@@ -41,6 +41,7 @@ if diag_ind > 1 % Only do this once we've started
         DIAG.THERMO.Q_o(diag_ind) = THERMO.Q_o;
         DIAG.THERMO.Q_open(diag_ind) = THERMO.Q_open;
         DIAG.THERMO.Q_bas(diag_ind) = THERMO.Q_bas;
+        DIAG.THERMO.Q_vert(:,diag_ind) = THERMO.Q_vert;
         DIAG.THERMO.dV(diag_ind) = sum(THERMO.diff(:).*FSTD.dA(:).*FSTD.meshHmid(:)) + ...
             + THERMO.dV_max_basal;
         DIAG.THERMO.dVmax_basal(diag_ind) = THERMO.dV_max_basal;
@@ -163,6 +164,8 @@ if diag_ind > 1 % Only do this once we've started
         DIAG.OCEAN.S_base_mix(diag_ind) = OCEAN.S_base_mix;
 
         DIAG.OCEAN.Q_ml_SW(diag_ind) = OCEAN.Q_ml_SW; 
+        DIAG.OCEAN.Aside(diag_ind) = OCEAN.Aside; 
+        DIAG.OCEAN.dV_thermo(diag_ind) = OCEAN.dV_ice; 
         
     end
     

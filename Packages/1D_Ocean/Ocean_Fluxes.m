@@ -43,6 +43,14 @@ LW_in = OCEAN.epsilon * OCEAN.LW;
 SW_in = (1 - OCEAN.alpha) * ( 1 - OCEAN.Io) * OCEAN.SW;
 
 %%
+DUMMY.lead_width = OPTS.r_p; 
+
+% Calculate the area of the lead region and open water region
+% [OCEAN.Al,OCEAN.Ao] = calc_lead_area(FSTD,DUMMY);
+
+% Calculate the side area shared b/w the sea ice and the surface layer
+OCEAN.Aside = calc_side_area(FSTD,OPTS); 
+
 
 % The surface heat flux budget over ocean. 
 F_surf_at =  @(T) ... % Positive implies warming
@@ -52,10 +60,12 @@ F_surf_at =  @(T) ... % Positive implies warming
     SH_out(T) - ... % Sensible heat flux out of surface
     LW_out(T);    % Longwave heat flux out of surface
     
+phi = (1-FSTD.conc);
+
 hf_balance = @(T) ... % Net heat flux balance for surface layer. Negative means cooling
-    F_surf_at(T) ... % Surface radiative flux balance.
-    + F_surf_ml(T) ... % Heating from mixed layer turbulence.
-    + F_surf_ic(T); % Heating going to ice
+    phi*F_surf_at(T) ... % Surface radiative flux balance.
+    + phi*F_surf_ml(T) ... % Heating from mixed layer turbulence.
+    + (OCEAN.Aside) * F_surf_ic(T); % Heating going to ice
 
 try
 
@@ -76,10 +86,11 @@ if OCEAN.T_s < OCEAN.Tfrz
 
     % The open water heat flux is the balance of fluxes at the freezing
     % point
-    OCEAN.Q_o = (1-FSTD.conc) * hf_balance(OCEAN.Tfrz); 
+    OCEAN.Q_o = phi * hf_balance(OCEAN.Tfrz); 
 
     % The surface temperature is now the freezing temperature    
     OCEAN.T_s = OCEAN.Tfrz; 
+    
 end
 
 % All fluxes are calculated at the new surface temperature
@@ -88,9 +99,6 @@ OCEAN.Q_SH = SH_out(OCEAN.T_s);
 OCEAN.Q_LW_out = LW_out(OCEAN.T_s); 
 OCEAN.Q_SW_in = SW_in; 
 OCEAN.Q_LW_in = LW_in;
-OCEAN.Q_lead = F_surf_ic(OCEAN.T_s); 
-OCEAN.Q_surf_at = F_surf_at(OCEAN.T_s); 
-OCEAN.Q_surf_ml = F_surf_ml(OCEAN.T_s); 
 
 %% 
 % Now we convert from the fluxes we have evaluated, which are in a region
@@ -99,15 +107,15 @@ OCEAN.Q_surf_ml = F_surf_ml(OCEAN.T_s);
 
 % This is the exchange of heat from the mixed layer below to the surface
 % layer. Per unit of grid. 
-OCEAN.Q_surf_ml = (1-FSTD.conc) * F_surf_ml(OCEAN.T_s); 
+OCEAN.Q_surf_ml = phi * F_surf_ml(OCEAN.T_s); 
 
 % The lead heat flux is the exchange between the surface and the lead
 % region. Per unit of grid. 
-OCEAN.Q_lead = (1-FSTD.conc) * F_surf_ic(OCEAN.T_s); 
+OCEAN.Q_lead = OCEAN.Aside * F_surf_ic(OCEAN.T_s); 
 
 % This is the radiative/atmospheric exchange per unit of grid cell. The
 % amount of heat coming from the atmosphere. 
-OCEAN.Q_surf_at = (1-FSTD.conc) * F_surf_at(OCEAN.T_s); 
+OCEAN.Q_surf_at = phi * F_surf_at(OCEAN.T_s); 
 
 % The exchange between the sea ice and the mixed layer. Per unit of grid
 OCEAN.Q_mi = FSTD.conc * OCEAN.rho * OCEAN.cw * OCEAN.ch * OCEAN.ustar_i * (OCEAN.T - OCEAN.Tfrz); 

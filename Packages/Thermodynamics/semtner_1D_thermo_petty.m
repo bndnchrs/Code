@@ -8,11 +8,12 @@ function [THERMO] = setmner_1D_thermo_petty(FSTD,OPTS,THERMO,OCEAN,EXFORC)
 % melting. 
 % THERMO.T_ice - The surface temperature of the ice
 
-% Q is the surface heat flux that is not the long-wave part (positive =
-% melting)
-% Qbase is the heat flux from the ocean (positive = melting)
-% h is the vector of ice thicknesses
-% T_0 is the vector of ice temperature per thickness
+%% These fluxes are created in a region in which there is only ice
+% aka a 1-column sea ice model. The heat flux from the ocean, which is
+% given as OCEAN.Q_bas, is expressed as the total such heating in the
+% entire grid. It therefore has to be divided by the sea ice concentration
+% to get the flux to each individual square meter of sea ice. 
+Q_bas = THERMO.Q_bas / FSTD.conc;
 
 % dhdt is the total time rate of change of ice thickness in each thickness
 % category
@@ -99,7 +100,7 @@ end
 %Qbase is positive for melting
 % Lose thickness due to input from water to ice
 % Lose thickess due to heat flux from ice surface to ice base
-THERMO.dhdt_base = -(THERMO.Q_bas/qbase + THERMO.Q_cond / qbase); 
+THERMO.dhdt_base = -(Q_bas/qbase + THERMO.Q_cond / qbase); 
     
 THERMO.surf_HF = surf_HF(FSTD.Hmid); 
     

@@ -1,8 +1,8 @@
 %% Now compute power budget
 
-% Heat loss of mixed layer
-
-OCEAN.Q_ml_SW = (1 - OCEAN.alpha) * OCEAN.Io * (1 - exp(-OCEAN.kappa_w * OCEAN.H_ml)) * OCEAN.SW;
+% Heat loss of mixed layer. 
+OCEAN.Q_ml_SW = (1-FSTD.conc) * (1 - OCEAN.alpha) ...
+    * OCEAN.Io * (1 - exp(-OCEAN.kappa_w * OCEAN.H_ml)) * OCEAN.SW;
 
 OCEAN.Q_ml_out = ...
     OCEAN.Q_surf_ml + ... % heat to surface ocean
@@ -10,14 +10,14 @@ OCEAN.Q_ml_out = ...
     OCEAN.Q_ml_SW; % heat from SW
 
 % Thermodynamic change of ice volume
-FSTD.dV_ice = integrate_FSTD(THERMO.diff,FSTD.Hmid,FSTD.dA,0);
+OCEAN.dV_ice = integrate_FSTD(THERMO.diff,FSTD.Hmid,FSTD.dA,0);
 
 % Evaporation from latent heat flux
 OCEAN.Evap =  OCEAN.Q_LH / (OCEAN.rho_a * OCEAN.L_v); 
 
 % Salinity loss of mixed layer
 OCEAN.S_ml_out = ...
-    (OPTS.rho_ice/OCEAN.rho) * (OCEAN.S_i - OCEAN.S)*FSTD.dV_ice ... % Change of salinity from ice formation/melting 
+    (OPTS.rho_ice/OCEAN.rho) * (OCEAN.S_i - OCEAN.S)*OCEAN.dV_ice ... % Change of salinity from ice formation/melting 
     + (1 - FSTD.conc) * (OCEAN.Precip - OCEAN.Evap) * OCEAN.S; % Change of salinity from precip/evap
 
 g = 9.81; 

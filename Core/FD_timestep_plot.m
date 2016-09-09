@@ -26,9 +26,11 @@ if FSTD.i == 1
         
         PLOTS.plot_all = figure;
         
-        pos = [12 8];
-        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
-        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
+        nfig = 2*DIAG.PLOT_OCEAN + DIAG.PLOT_OC_PROF; 
+        pos = [1/nfig .5]; 
+        paperpos = [8 4]; 
+        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 paperpos],'papersize',pos,'units','normalized','paperunits','inches');
+        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 paperpos],'papersize',pos,'units','normalized','paperunits','inches');
         
         
         PLOTS.ax_FSD = subplot(321);
@@ -46,15 +48,15 @@ if FSTD.i == 1
         
         PLOTS.plot_oc = figure;
         colormap(cmap);
-        set(gcf,'windowstyle','normal','position',[pos(1) 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
-        set(gcf,'windowstyle','normal','position',[pos(1) 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
+        set(gcf,'windowstyle','normal','position',[pos(1) 0 pos],'paperposition',[0 0 paperpos],'papersize',pos,'units','normalized','paperunits','inches');
+        set(gcf,'windowstyle','normal','position',[pos(1) 0 pos],'paperposition',[0 0 paperpos],'papersize',pos,'units','normalized','paperunits','inches');
         
         
         if DIAG.PLOT_OC_PROF
             PLOTS.oc_prof = figure;
             colormap(cmap);
-            set(gcf,'windowstyle','normal','position',[2*pos(1) 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
-            set(gcf,'windowstyle','normal','position',[2*pos(1) 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches','paperunits','inches');
+            set(gcf,'windowstyle','normal','position',[2*pos(1) 0 pos],'paperposition',[0 0 paperpos],'papersize',pos,'units','normalized','paperunits','inches');
+            set(gcf,'windowstyle','normal','position',[2*pos(1) 0 pos],'paperposition',[0 0 paperpos],'papersize',pos,'units','normalized','paperunits','inches');
         end
         
     end
@@ -141,9 +143,9 @@ if FSTD.i == OPTS.nt
         legend(PLOTS.ax_thick,[PLOTS.h4 PLOTS.h42],'Mean','Max');
         
         
-        %         pos = [16 16];
-        %         set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
-        %         set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
+        pos = [16 12];
+        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
+        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
         
         if isfield(OPTS,'figpath') && OPTS.saveplots
             
@@ -160,9 +162,9 @@ if FSTD.i == OPTS.nt
         figure(PLOTS.plot_oc)
         drawnow
         
-        %         pos = [16 16];
-        %         set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
-        %         set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
+        pos = [16 12];
+        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
+        set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 pos],'papersize',pos,'units','inches');
         
         if isfield(OPTS,'figpath') && OPTS.saveplots
             

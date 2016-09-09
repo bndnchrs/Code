@@ -153,6 +153,7 @@ if OCEAN.DO
     DIAG.OCEAN.Q_mi = dum_diag;     
     DIAG.OCEAN.T_s = dum_diag; 
     DIAG.OCEAN.H_ml = dum_diag; 
+    DIAG.OCEAN.Al = dum_diag; 
 
 end
 
