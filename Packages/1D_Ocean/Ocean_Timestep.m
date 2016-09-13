@@ -13,12 +13,17 @@ OCEAN.Q_ml_out = ...
 OCEAN.dV_ice = integrate_FSTD(THERMO.diff,FSTD.Hmid,FSTD.dA,0);
 
 % Evaporation from latent heat flux
-OCEAN.Evap =  OCEAN.Q_LH / (OCEAN.rho_a * OCEAN.L_v); 
+OCEAN.Evap =  OCEAN.Q_LH / (OPTS.rho_water * OCEAN.L_v); 
 
-% Salinity loss of mixed layer
+OCEAN.S_ml_ice = (OPTS.rho_ice/OCEAN.rho) * (OCEAN.S_i - OCEAN.S)*OCEAN.dV_ice;
+OCEAN.S_ml_precip = (1 - FSTD.conc) * OCEAN.Precip * OCEAN.S; 
+OCEAN.S_ml_evap = (1 - FSTD.conc) * OCEAN.Evap * OCEAN.S;
+
+% Salinity loss of mixed layer 
 OCEAN.S_ml_out = ...
-    (OPTS.rho_ice/OCEAN.rho) * (OCEAN.S_i - OCEAN.S)*OCEAN.dV_ice ... % Change of salinity from ice formation/melting 
-    + (1 - FSTD.conc) * (OCEAN.Precip - OCEAN.Evap) * OCEAN.S; % Change of salinity from precip/evap
+    OCEAN.S_ml_ice ... % Change of salinity from ice formation/melting 
+    + OCEAN.S_ml_precip ... % Change of salinity from precip (more means freshening)
+    - OCEAN.S_ml_evap; % Change from evap (more means saltier)
 
 g = 9.81; 
 
@@ -33,10 +38,22 @@ if OCEAN.w > 0
 end
 
 % Turbulent Heating from below
-if OCEAN.compute_turb_deep
-OCEAN.w_turb = OCEAN.kappa_turb / (OCEAN.H_ml);
+rho_oc = OCEAN.EOS(OCEAN.T,OCEAN.S); 
+rho_b = OCEAN.EOS(OCEAN.T_b(OCEAN.H_ml),OCEAN.S_b(OCEAN.H_ml)); 
+
+% If the ml density is higher than the deep density, we have convection.
+% We effect this by increasing the eddy diffusivity by an order of
+% magnitude, from kappa_conv to kappa_turb
+if rho_b < rho_oc
+    OCEAN.kappa_calc = OCEAN.kappa_conv; 
 else
-    OCEAN.w_turb = 0; 
+    OCEAN.kappa_calc = OCEAN.kappa_turb; 
+end
+
+if OCEAN.compute_turb_deep
+    OCEAN.w_turb = OCEAN.kappa_calc / (OCEAN.H_ml);
+else
+    OCEAN.w_turb = 0;
 end
 
 % Time evolution of salinity/temp

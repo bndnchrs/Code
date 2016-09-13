@@ -15,7 +15,7 @@ end
 
 if ~isfield(OCEAN,'S')
     
-    OCEAN.S = 32.5; % Mixed Layer Salinity in psu
+    OCEAN.S = 34; % Mixed Layer Salinity in psu
     
 end
 
@@ -26,13 +26,22 @@ if ~isfield(OCEAN,'lambda_rest')
 end
 
 if ~isfield(OCEAN,'compute_turb_deep')
+
     OCEAN.compute_turb_deep = 0; 
+
 end
 
 if ~isfield(OCEAN,'kappa_turb')
     % The turbulent exchange with the deep layer below. Pick length scale
+    % of 25 meters, time scale of 30 days. 
+    OCEAN.kappa_turb = 25^2 / (30*86400);
+    
+end
+
+if ~isfield(OCEAN,'kappa_conv')
+    % The strength of convective exchange. Pick length scale
     % of 25 meters, time scale of 7 days. 
-    OCEAN.kappa_turb = .001;
+    OCEAN.kappa_conv = OCEAN.kappa_turb * 10;
     
 end
 
@@ -129,7 +138,7 @@ end
 if ~isfield(OCEAN,'S_b')
     
     
-    OCEAN.S_b = @(z) 33 + (z>20).*(1.4 + .2*(z)/500); % + 1*tanh((z)/30);
+    OCEAN.S_b = @(z) 34 + (z>20).*(1.4 + .2*(z)/500); % + 1*tanh((z)/30);
     
 end
 
@@ -160,6 +169,14 @@ end
 
 if ~isfield(EXFORC,'PRECIP')
     EXFORC.PRECIP = zeros(1,OPTS.nt); % m/s
+end
+
+if ~isfield(EXFORC,'EVAP')
+    EXFORC.EVAP = zeros(1,OPTS.nt); % m/s
+end
+
+if ~isfield(OCEAN,'presc_evap')
+    OCEAN.presc_evap = 0; 
 end
 
 if ~isfield(OCEAN,'S_i')

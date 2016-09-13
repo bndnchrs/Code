@@ -18,15 +18,15 @@ FIELDS = pull_ncep_clim;
 
 % Mixed-layer depth
 Hml  = cos(2*pi*ncep_time/ (365*86400));
-Hml = max(Hml,0);
+Hml = 0*max(Hml,0);
 
-FIELDS{8} = 25 * (1 + Hml);
+FIELDS{9} = 25 * (1 + Hml);
 
 % Deep Temperature
 Tb  = 1.8*cos(2*pi*(ncep_time/(365*86400) + 1/2));
 Tb = max(Tb,0);
 
-FIELDS{9} = -1.8 + Tb;
+FIELDS{10} = -1.8 + Tb;
 
 nyears = ceil(max(time) / (365*86400));
 
@@ -44,7 +44,7 @@ ncep_time = ncep_time' * (365 * 86400/12);
 for i = 1:length(FIELDS)
     FIELDS{i} = interp1(ncep_time,FIELDS{i},time,'linear','extrap');
 
-    if i ~= 9 && i~= 8
+    if i ~= 10 && i~= 9
         
         FIELDS{i} = smooth(smooth(FIELDS{i},2*smoothdur,'sgolay',1),smoothdur);
         
@@ -58,7 +58,7 @@ end
 
 % For the H_ml field, we need an extra step because it is used to calculate
 % w = dH/dt
-FIELDS{8}(end+1) = 2*FIELDS{8}(end) - FIELDS{8}(end-1);
+FIELDS{9}(end+1) = 2*FIELDS{9}(end) - FIELDS{9}(end-1);
 
 
 %
@@ -69,6 +69,7 @@ FIELDS{8}(end+1) = 2*FIELDS{8}(end) - FIELDS{8}(end-1);
 % FIELDS{4} = U;
 % FIELDS{5} = Precip;
 % FIELDS{6} = Qair;
+% FIELDS{7} = Evap
 
 EXFORC.QSW = FIELDS{1};
 EXFORC.QLW = FIELDS{2};
@@ -77,8 +78,9 @@ EXFORC.UATM = FIELDS{4};
 EXFORC.PRECIP = FIELDS{5};
 EXFORC.QATM = FIELDS{6};
 EXFORC.PATM = FIELDS{7};
-EXFORC.Hml = FIELDS{8};
-EXFORC.T_b = FIELDS{9};
+EXFORC.EVAP = FIELDS{8}; 
+EXFORC.Hml = FIELDS{9};
+EXFORC.T_b = FIELDS{10};
 
 
 %% Now plot the fields
@@ -131,16 +133,18 @@ set(gca,'xticklabel',{})
 set(gca,'xtick',ticks)
 
 subplot(244)
-plot(time/(365*86400),EXFORC.PRECIP,'k')
+plot(time/(365*86400),EXFORC.PRECIP)
+hold on
+plot(time/(365*86400),EXFORC.EVAP)
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',12)
 grid on
 box on
-title('Precip')
+title('Precip/Evap')
 xlim([0 1])
 ylabel('m/s')
 set(gca,'xticklabel',{})
 set(gca,'xtick',ticks)
-
+legend('P','E','location','south')
 
 subplot(245)
 plot(time/(365*86400),EXFORC.QATM,'k')
@@ -288,7 +292,7 @@ Temp = [    244.9440
 Temp = Temp - 273.14;
 
 % Surface pressure
-PSURF = [101834.7
+PSURF = [101834.7 % in Pa from NCEP-II
     101960.7
     102030.4
     102048.0
@@ -299,7 +303,7 @@ PSURF = [101834.7
     101063.3
     101426.3
     101840.0
-    101836.8];
+    101836.8]/1000; % Convert to kPa 
 
 % Net precipitation
 Precip = [   3.4800000E-06
@@ -313,7 +317,7 @@ Precip = [   3.4800000E-06
     8.1099997E-06
     5.8900000E-06
     3.3700001E-06
-    3.6199999E-06];
+    3.6199999E-06] / 999.8; % in kg / m^2 s - convert to m/s
 
 % 2-m specific humidity
 
@@ -330,6 +334,21 @@ Qair = [   4.0530000E-04
     5.8930001E-04
     4.5759999E-04];
 
+Evap = [    1.370000    
+    1.300000    
+    1.500000    
+    3.130000    
+    7.330000    
+    13.20000    
+    12.14000    
+    7.250000    
+    1.910000    
+   0.7300000    
+    1.480000    
+    1.740000  ]; 
+
+Evap = Evap / (999.8 * 2.501 * 10^6); 
+
 FIELDS{1} = SW;
 FIELDS{2} = LW;
 FIELDS{3} = Temp;
@@ -337,5 +356,6 @@ FIELDS{4} = U;
 FIELDS{5} = Precip;
 FIELDS{6} = Qair;
 FIELDS{7} = PSURF;
+FIELDS{8} = Evap; 
 
 end

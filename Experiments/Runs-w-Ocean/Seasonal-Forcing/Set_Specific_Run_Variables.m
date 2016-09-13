@@ -23,17 +23,23 @@ EXFORC.wavespec(:,ind) = 1;
 
 %% Set Ocean External Forcing Options
 
-EXFORC = load_seasonal_cycle(EXFORC,FSTD.time);
+OPTS.rho_water = 1000; 
 
-% Since we aren't using liquid exchange, these can be zero
+EXFORC = load_seasonal_cycle(EXFORC,FSTD.time);
+OCEAN.presc_evap = 1; 
+
 OCEAN.do_LH = 1; 
+
+OCEAN.kappa_turb = 25^2 / (30*86400); 
 
 %% Set Deep Ocean Properties and Initial Temp
 OCEAN.T = 0;
-OCEAN.S = 33; 
+OCEAN.S = 32; 
 
 OCEAN.T_b = @(z) -1.8;
 OCEAN.S_b = @(z) 33;
+
+
 
 
 %% Set Advection Options
@@ -69,4 +75,4 @@ psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
 
 % Initial concentration is 50%
 FSTD.psi = .5*psi/ sum(psi(:).*FSTD.dA(:)); 
-FSTD.psi = 0*ADVECT.FSTD_in; 
+% FSTD.psi = 0*ADVECT.FSTD_in; 

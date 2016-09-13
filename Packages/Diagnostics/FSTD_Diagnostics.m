@@ -119,9 +119,9 @@ if diag_ind > 1 % Only do this once we've started
         
         DIAG.OCEAN.T(diag_ind) = OCEAN.T;
         DIAG.OCEAN.S(diag_ind) = OCEAN.S;
-        
+        DIAG.OCEAN.rho(diag_ind) = OCEAN.rho; 
         DIAG.OCEAN.W(diag_ind) = OCEAN.w;
-        
+        DIAG.OCEAN.q(diag_ind) = OCEAN.q; 
         
         if isfield('OCEAN','dopetty') && OCEAN.dopetty
             % we are doing this power budget thing
@@ -145,6 +145,10 @@ if diag_ind > 1 % Only do this once we've started
         DIAG.OCEAN.Q_mi(diag_ind) = OCEAN.Q_mi;
         DIAG.OCEAN.Q_ml_out(diag_ind) = OCEAN.Q_ml_out;
         DIAG.OCEAN.S_ml_out(diag_ind) = OCEAN.S_ml_out;
+        DIAG.OCEAN.S_ml_ice(diag_ind) = OCEAN.S_ml_ice;
+        DIAG.OCEAN.S_ml_precip(diag_ind) = OCEAN.S_ml_precip;
+        DIAG.OCEAN.S_ml_evap(diag_ind) = OCEAN.S_ml_evap;
+        
         
         DIAG.OCEAN.T_s(diag_ind) = OCEAN.T_s;
         
@@ -166,7 +170,7 @@ if diag_ind > 1 % Only do this once we've started
         DIAG.OCEAN.Q_ml_SW(diag_ind) = OCEAN.Q_ml_SW; 
         DIAG.OCEAN.Aside(diag_ind) = OCEAN.Aside; 
         DIAG.OCEAN.dV_thermo(diag_ind) = OCEAN.dV_ice; 
-        
+        DIAG.OCEAN.kappa_turb(diag_ind) = OCEAN.kappa_calc; 
     end
     
 end

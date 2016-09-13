@@ -17,12 +17,12 @@ ADVECT = struct();
 OPTS.saveplots = 0;
 
 
-length = 20* ... % years
+length = 5* ... % years
     12* ... % months
     30* ... % days
     86400; % seconds
 
-OPTS.nt = 20 * ... % years
+OPTS.nt = 5 * ... % years
     12 * ... % months
     30; % nt / month
     

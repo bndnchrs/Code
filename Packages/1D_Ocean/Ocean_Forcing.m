@@ -18,6 +18,8 @@ if OCEAN.DO && (~isfield(THERMO,'fixed_Q') || ~THERMO.fixQ)
     
     OCEAN.Precip = EXFORC.PRECIP(FSTD.i);
     
+    OCEAN.Evap_presc = EXFORC.EVAP(FSTD.i);
+    
     if isfield(EXFORC,'T_b')
         
         OCEAN.T_b = @(z) EXFORC.T_b(FSTD.i);

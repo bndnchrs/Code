@@ -8,6 +8,12 @@ cplots = [228,26,28
 255,255,51
 166,86,40]/256;
 
+
+endyr = ceil(max(FSTD.time/OPTS.year)); 
+ticks = (1:(4*endyr))/4  + 1/24 - .25; 
+mos = {'Jan','Apr','Jul','Oct'}; 
+mos = repmat(mos,[1 endyr]);
+
 if isfield(PLOTS,'fig_pplot')
     
     try
@@ -39,10 +45,16 @@ hold off
 ylabel('%,m')
 title('Ice Variables')
 legend('c','V','H','location','northwest')
+set(gca,'xtick',ticks,'xticklabel',mos)
 
 Ax{2} = subplot(232)
-plot(FSTD.time/OPTS.year,DIAG.THERMO.drdt(2:end),'color',cplots(1,:))
-ylabel('m')
+rho_oc = OCEAN.EOS(DIAG.OCEAN.T,DIAG.OCEAN.S); 
+rho_b = OCEAN.EOS(EXFORC.T_b,OCEAN.S_b(1)); 
+
+plot(FSTD.time/OPTS.year,rho_b - rho_oc(2:end),'color',cplots(1,:))
+ylabel('kg/m^3')
+set(gca,'xtick',ticks,'xticklabel',mos)
+title('\Delta \rho')
 
 Ax{3} = subplot(233);
 [Ax1,h1,h2] = plotyy(FSTD.time/OPTS.year,DIAG.OCEAN.T(2:end),FSTD.time/OPTS.year,DIAG.OCEAN.S(2:end));
@@ -58,6 +70,8 @@ set(h1,'color',cplots(1,:),'linewidth',1);
 set(h2,'color',cplots(2,:),'linewidth',2); 
 title('ML T and S')
 legend('T','T_s','S','location','northwest')
+set(Ax1(1),'xtick',ticks,'xticklabel',mos)
+set(Ax1(2),'xtick',ticks,'xticklabel',mos)
 
 Ax{4} = subplot(234);
 plot(FSTD.time/OPTS.year,DIAG.OCEAN.Qsurf_at(2:end),'color','k','linewidth',1)
@@ -75,7 +89,7 @@ legend('Surface Q','To ML','To Ice','location','northwest')
 % legend('orientation','horizontal')
 xlabel('Time (years)')
 ylabel('W/m^2')
-
+set(gca,'xtick',ticks,'xticklabel',mos)
 
 Ax{5} = subplot(235);
 % Plot the heat fluxes in the mixed layer
@@ -83,23 +97,28 @@ plot(FSTD.time/OPTS.year,DIAG.OCEAN.Qsurf_ml(2:end),'color',cplots(1,:),'linewid
 hold on
 plot(FSTD.time/OPTS.year,DIAG.OCEAN.Q_ml_SW(2:end),'color',cplots(2,:),'linewidth',1)
 plot(FSTD.time/OPTS.year,DIAG.OCEAN.Q_base_mix(2:end),'color',cplots(3,:),'linewidth',1)
+plot(FSTD.time/OPTS.year,OCEAN.rho * OCEAN.cw * DIAG.OCEAN.H_ml(2:end) .* DIAG.OCEAN.dTdt(2:end),'color',cplots(4,:),'linewidth',1)
 hold off
 title('ML T Fluxes')
-legend('To surface','SW','Mixing at base','location','northwest')
+legend('To surface','SW','Mixing at base','Net','location','northwest')
 % legend('orientation','horizontal')
 xlabel('Time (years)')
 ylabel('W/m^2')
+set(gca,'xtick',ticks,'xticklabel',mos)
 
 Ax{6} = subplot(236);
 % Plot the salinity fluxes
 plot(FSTD.time/OPTS.year,DIAG.OCEAN.S_base_mix(2:end),'color',cplots(1,:),'linewidth',1);
 hold on
-plot(FSTD.time/OPTS.year,DIAG.OCEAN.S_ml_out(2:end),'color',cplots(2,:),'linewidth',1);
+plot(FSTD.time/OPTS.year,DIAG.OCEAN.S_ml_ice(2:end),'color',cplots(2,:),'linewidth',1);
+plot(FSTD.time/OPTS.year,DIAG.OCEAN.S_ml_precip(2:end),'color',cplots(3,:),'linewidth',1);
+plot(FSTD.time/OPTS.year,DIAG.OCEAN.S_ml_evap(2:end),'color',cplots(4,:),'linewidth',1);
 hold off
 title('ML S Fluxes')
 xlabel('Time (years)')
 ylabel('psu m/s')
-legend('Mixing at base','Precip + Melting','location','northwest')
+legend('Mixing at base','Melting','Precip','Evap','location','northwest')
+set(gca,'xtick',ticks,'xticklabel',mos)
 
 %% Make all the axes to the right format
 pos = [12 4];
@@ -133,3 +152,6 @@ end
     box(Ax1(2),'on')
     set(Ax1(2),'xlim',xlimmer)
     set(Ax1(2),'ydir','normal','layer','top','fontname','helvetica','fontsize',12)
+
+    saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Fig-6-seas-thermo/Fig-6.pdf')
+    saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Fig-6-seas-thermo/Fig-6.fig')

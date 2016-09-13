@@ -37,7 +37,17 @@ F_surf_ml = @(T) OCEAN.rho * OCEAN.cw * OCEAN.ustar_o * (OCEAN.T - T);
 F_surf_ic = @(T) OCEAN.rho * OCEAN.cw * OCEAN.ustar_o * (OCEAN.Tfrz - T);
 
 SH_out = @(T) OCEAN.do_SH * OCEAN.rho_a * OCEAN.c_a * OCEAN.CD_o * OCEAN.U_a * (T - OCEAN.T_a);
-LH_out = @(T) OCEAN.do_LH * OCEAN.rho_a * OCEAN.L_v * OCEAN.CD_o * OCEAN.U_a * (OCEAN.qsat(T) - OCEAN.q_a);
+
+if OCEAN.presc_evap
+    
+    LH_out = @(T) OCEAN.do_LH * OCEAN.Evap_presc * OPTS.rho_water * OCEAN.L_v;
+
+else
+    
+    LH_out = @(T) OCEAN.do_LH * OCEAN.rho_a * OCEAN.L_v * OCEAN.CD_o * OCEAN.U_a * (OCEAN.qsat(T) - OCEAN.q_a);
+    
+end
+
 LW_out = @(T) OCEAN.epsilon * OPTS.sigma * (T + 273.14).^4;
 LW_in = OCEAN.epsilon * OCEAN.LW;
 SW_in = (1 - OCEAN.alpha) * ( 1 - OCEAN.Io) * OCEAN.SW;
@@ -95,10 +105,12 @@ end
 
 % All fluxes are calculated at the new surface temperature
 OCEAN.Q_LH = LH_out(OCEAN.T_s); 
+OCEAN.q = OCEAN.qsat(OCEAN.T_s); 
 OCEAN.Q_SH = SH_out(OCEAN.T_s); 
 OCEAN.Q_LW_out = LW_out(OCEAN.T_s); 
 OCEAN.Q_SW_in = SW_in; 
 OCEAN.Q_LW_in = LW_in;
+
 
 %% 
 % Now we convert from the fluxes we have evaluated, which are in a region
