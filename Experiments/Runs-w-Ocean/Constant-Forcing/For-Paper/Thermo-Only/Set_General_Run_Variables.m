@@ -14,22 +14,12 @@ EXFORC = struct();
 ADVECT = struct();
 
 %% General Options
-OPTS.saveplots = 0;
-
-
-length = 5* ... % years
-    12* ... % months
-    30* ... % days
-    86400; % seconds
-
-OPTS.nt = 5 * ... % years
-    12 * ... % months
-    10; % nt / month
-    
-OPTS.dt = length / OPTS.nt;
-
+OPTS.saveplots = 0; 
+OPTS.dt = 86400;
 OPTS.nr = 90; 
-OPTS.nh = 12; 
+OPTS.nh = 13; 
+
+OPTS.nt = 90;
 
 
 %% Set General Mechanics Options

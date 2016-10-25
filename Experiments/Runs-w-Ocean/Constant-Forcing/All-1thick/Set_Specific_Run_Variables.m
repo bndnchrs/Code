@@ -39,7 +39,7 @@ EXFORC.TATM = TA;
 
 SW(SW < 0) = 0; 
 
-LW = 250 + 0*SW; 
+LW = 200 + 0*SW; 
 
 EXFORC.QSW = SW; % To be Q_fixed
 EXFORC.QLW = LW; 

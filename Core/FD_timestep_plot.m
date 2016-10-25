@@ -21,14 +21,15 @@ if FSTD.i == 1
         127,0,0]/256;
     
     
-    if DIAG.PLOT_OCEAN
+    if DIAG.PLOT_FSTD
         
         
         PLOTS.plot_all = figure;
         
-        nfig = 2*DIAG.PLOT_OCEAN + DIAG.PLOT_OC_PROF; 
+        nfig = 1 + 2*DIAG.PLOT_OCEAN + DIAG.PLOT_OC_PROF; 
         pos = [1/nfig .5]; 
         paperpos = [8 4]; 
+
         set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 paperpos],'papersize',pos,'units','normalized','paperunits','inches');
         set(gcf,'windowstyle','normal','position',[0 0 pos],'paperposition',[0 0 paperpos],'papersize',pos,'units','normalized','paperunits','inches');
         

@@ -6,24 +6,26 @@
 
 if ~isfield(OCEAN,'eps_II')
     % Ocean Velocities
-    OCEAN.eps_II = zeros(OPTS.nt,1); 
+    OCEAN.eps_II = zeros(OPTS.nt,1);
     
 end
 
-if ~isfield(OCEAN,'UVEL')
-    OCEAN.UVEL =  zeros(2,OPTS.nt); 
+if ~isfield(EXFORC,'UVEL')
+    
+    EXFORC.UVEL =  zeros(2,OPTS.nt);
+    
 end
 
 if ~isfield(ADVECT,'prescribe_ice_vels')
     % Whether we will prescribe how fast the ice moves using the UVEL
     % fields from the ocean.
-    ADVECT.prescribe_ice_vels = 0; 
+    ADVECT.prescribe_ice_vels = 0;
 end
 
 if ~isfield(ADVECT,'stressreducer')
     % Reducing applies velocities to ice velocities
-    ADVECT.stressreducer = .1; 
-
+    ADVECT.stressreducer = .1;
+    
 end
 if ~isfield(ADVECT,'FSTD_in')
     % This is the FSTD of the ice on the western boundary
@@ -47,16 +49,16 @@ if ~isfield(OPTS,'ocicdelta')
     end
 end
 
-% This is a cutoff of concentration for the advection code. 
+% This is a cutoff of concentration for the advection code.
 if ~isfield(OPTS,'ocicbeta')
-     if MECH.DO && MECH.simple_oc_sr
+    if MECH.DO && MECH.simple_oc_sr
         % We wont need it
-     else
+    else
         OPTS.ocicbeta = 1;
-     end
+    end
 end
 
 if ~isfield(OPTS,'Domainwidth')
-    OPTS.Domainwidth = 1e4; 
+    OPTS.Domainwidth = 1e4;
 end
 

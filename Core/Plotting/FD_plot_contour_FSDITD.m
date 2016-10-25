@@ -37,6 +37,7 @@ else
     %  PLOTS.p1 = pcolor([0 FSTD.time/86400],FSTD.Rint,log10(squeeze(sum(bsxfun(@times,DIAG.FSTD.psi,DIAG.FSTD.dA),2)+eps)));
     %  shading interp
     set(gca,'clim',[-4 0])
+    set(gca,'yscale','log')
     
     if FSTD.i == OPTS.nt && WAVES.DO
         
@@ -133,7 +134,11 @@ ylabel('Floe Size')
 title('log_{10} of ITD(h)dh')
 xlabel('Time')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
-ylim([FSTD.Hmid(1) FSTD.Hmid_i(end)]);
+
+if length(FSTD.Hmid > 1)
+    % ylim([FSTD.Hmid(1) FSTD.Hmid_i(end)]);
+end
+
 set(gca,'clim',[-4 0])
 shading interp
 axis xy

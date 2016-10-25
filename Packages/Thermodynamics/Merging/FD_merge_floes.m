@@ -29,7 +29,7 @@ if THERMO.DO
         THERMO.cdot = integrate_FSTD(THERMO.diff,1,FSTD.dA,0);
         THERMO.phi = 1 - integrate_FSTD(FSTD.psi,1,FSTD.dA,0);
         
-        THERMO.alphamerge = THERMO.cdot / (THERMO.phi^2);
+        THERMO.alphamerge = THERMO.cdot / (THERMO.phi);
         
         if THERMO.alphamerge >= 1
             

@@ -100,7 +100,7 @@ if FSTD.i == OPTS.nt
     ylabel('log10(m^2/m^2)')
     set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
     legend(str)
-    xlim([DIAG.FSTD.H(1) DIAG.FSTD.H(end)])
+%    xlim([DIAG.FSTD.H(1) DIAG.FSTD.H(end)])
     % set(gca,'ylim',[llim 0])
     
     plotter = sum(ADVECT.FSTD_in .* FSTD.dA,1) + eps;

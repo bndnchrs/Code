@@ -97,6 +97,26 @@ for i = 1:length(FSTD.Hmid)
     
 end
     
+% Want to calculate the mean heat exchange fields. Since these are per
+% thickness category, we take the average field across the thickness
+% categories
+dum = sum(FSTD.psi.*FSTD.dA,1); 
+dum = dum / sum(dum); 
+if isnan(dum)
+    dum = 0; 
+end
+
+% Outgoing latent heat flux
+THERMO.Q_LH_ice = sum(dum.*LH_out(THERMO.T_ice));
+% Outgoing sensible heat flux
+THERMO.Q_SH_ice = sum(dum.*SH_out(THERMO.T_ice)); 
+% Outgoing longwave
+THERMO.LW_out_ice = sum(dum.*LW_out(THERMO.T_ice)); 
+% Incoming SW
+THERMO.Q_SW_in_ice = sum(dum.*SW_in); 
+% Incoming LW
+THERMO.Q_LW_in_ice = sum(dum.*LW_in);
+
 %Qbase is positive for melting
 % Lose thickness due to input from water to ice
 % Lose thickess due to heat flux from ice surface to ice base

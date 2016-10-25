@@ -15,11 +15,11 @@ ADVECT = struct();
 
 %% General Options
 OPTS.saveplots = 0; 
-OPTS.dt = 86400/2;
+OPTS.dt = 86400/24;
 OPTS.nr = 90; 
-OPTS.nh = 20; 
+OPTS.nh = 13; 
 
-OPTS.nt = 90*2;
+OPTS.nt = 14*24;
 
 
 %% Set General Mechanics Options
@@ -29,17 +29,12 @@ MECH.rafting = 1;
 MECH.ridging = 1; 
 MECH.try_to_load = 1; 
 
-%%
-% Variables that support the semtner thermodynamic package
-THERMO.dosemtner = 1; 
-THERMO.mergefloes = 1; 
-OCEAN.compute_turb_deep = 1; 
-
-%% 
+%% Set General Waves Options
+WAVES.prescribe_spec = 1; 
 WAVES.maxcounts = 1; 
 
 %% Plotting Options
 DIAG.plot_realtime = 0; 
 DIAG.PLOT_FSTD = 1; 
-DIAG.PLOT_OCEAN = 1; 
+DIAG.PLOT_OCEAN = 0; 
 OPTS.saveplots = 1; 

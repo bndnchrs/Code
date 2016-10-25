@@ -5,6 +5,7 @@
 if OCEAN.DO
     % Get ocean fields
    Ocean_Forcing;  
+   
 end
 
 if THERMO.DO

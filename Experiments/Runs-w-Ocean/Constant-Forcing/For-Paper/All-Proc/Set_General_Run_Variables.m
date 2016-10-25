@@ -14,22 +14,12 @@ EXFORC = struct();
 ADVECT = struct();
 
 %% General Options
-OPTS.saveplots = 0;
-
-
-length = 5* ... % years
-    12* ... % months
-    30* ... % days
-    86400; % seconds
-
-OPTS.nt = 5 * ... % years
-    12 * ... % months
-    10; % nt / month
-    
-OPTS.dt = length / OPTS.nt;
-
+OPTS.saveplots = 0; 
+OPTS.dt = 86400/6;
 OPTS.nr = 90; 
-OPTS.nh = 12; 
+OPTS.nh = 13; 
+
+OPTS.nt = 120*6;
 
 
 %% Set General Mechanics Options
@@ -39,17 +29,12 @@ MECH.rafting = 1;
 MECH.ridging = 1; 
 MECH.try_to_load = 1; 
 
-%%
-% Variables that support the semtner thermodynamic package
-THERMO.dosemtner = 1; 
-THERMO.mergefloes = 0; 
-OCEAN.compute_turb_deep = 1; 
-
-%% 
+%% Set General Waves Options
+WAVES.prescribe_spec = 0; 
 WAVES.maxcounts = 1; 
 
 %% Plotting Options
 DIAG.plot_realtime = 0; 
 DIAG.PLOT_FSTD = 1; 
-DIAG.PLOT_OCEAN = 1; 
+DIAG.PLOT_OCEAN = 0; 
 OPTS.saveplots = 1; 

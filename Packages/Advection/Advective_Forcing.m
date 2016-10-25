@@ -13,8 +13,8 @@ if ADVECT.DO && ADVECT.prescribe_ice_vels
     % These are the fluxes at the western and eastern boundaries,
     % prescribed by us
     
-    ADVECT.v1 = ADVECT.stressreducer * OCEAN.UVEL(1,FSTD.i);
-    ADVECT.v2 = ADVECT.stressreducer * OCEAN.UVEL(2,FSTD.i);
+    ADVECT.v1 = ADVECT.stressreducer * EXFORC.UVEL(1,FSTD.i);
+    ADVECT.v2 = ADVECT.stressreducer * EXFORC.UVEL(2,FSTD.i);
     
 else
     
@@ -51,7 +51,7 @@ else
         % diminished using the same calculation. This is the coefficient that
         % reduces the ocean velocity for the ice that exists in the pack.
         
-        co = OCEAN.UVEL(1,FSTD.i)*ADVECT.conc_in - OCEAN.UVEL(2,FSTD.i) * FSTD.conc;
+        co = EXFORC.UVEL(1,FSTD.i)*ADVECT.conc_in - EXFORC.UVEL(2,FSTD.i) * FSTD.conc;
         co(co < 0) = 0;
         
         ADVECT.in_oc_to_ic = co * ...
@@ -60,11 +60,11 @@ else
             * ( 1 - exp(-(1 + OPTS.ocicbeta - ADVECT.conc_in)/OPTS.ocicdelta));
         
         % Velocity at the left-most edge
-        ADVECT.v1 = OCEAN.UVEL(1,FSTD.i) * ADVECT.in_oc_to_ic;
+        ADVECT.v1 = EXFORC.UVEL(1,FSTD.i) * ADVECT.in_oc_to_ic;
         % Velocity at the right-most edge
-        ADVECT.v2 = OCEAN.UVEL(2,FSTD.i) * ADVECT.oc_to_ic;
+        ADVECT.v2 = EXFORC.UVEL(2,FSTD.i) * ADVECT.oc_to_ic;
         
-        OCEAN.StrainInvar(1) = (1/OPTS.Domainwidth) * (OCEAN.UVEL(2,FSTD.i) - OCEAN.UVEL(1,FSTD.i));
+        OCEAN.StrainInvar(1) = (1/OPTS.Domainwidth) * (EXFORC.UVEL(2,FSTD.i) - EXFORC.UVEL(1,FSTD.i));
         OCEAN.StrainInvar(2) = OCEAN.eps_II(FSTD.i);
         
         
@@ -77,12 +77,12 @@ else
             
         else
             % This is the velocity in the domain.
-            OCEAN.v = OCEAN.UVEL(2,FSTD.i) * ADVECT.oc_to_ic;
+            OCEAN.v = EXFORC.UVEL(2,FSTD.i) * ADVECT.oc_to_ic;
             
         end
         
         % This is the velocity at the pack-domain edge
-        OCEAN.vpack = OCEAN.UVEL(1,FSTD.i) * ADVECT.in_oc_to_ic;
+        OCEAN.vpack = EXFORC.UVEL(1,FSTD.i) * ADVECT.in_oc_to_ic;
         
         
     else

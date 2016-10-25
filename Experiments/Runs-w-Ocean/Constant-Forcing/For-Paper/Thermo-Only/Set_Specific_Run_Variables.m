@@ -26,27 +26,26 @@ EXFORC.wavespec(:,ind) = 1;
 OPTS.rho_water = 1000; 
 
 EXFORC = load_seasonal_cycle(EXFORC,FSTD.time);
-OCEAN.presc_evap = 0; 
+OCEAN.presc_evap = 0;
 
 OCEAN.do_LH = 1; 
 
-OCEAN.kappa_turb = 25^2 / (30*86400); 
+OCEAN.kappa_turb = 25^2 / (7*86400); 
+
 
 %% Set Deep Ocean Properties and Initial Temp
-OCEAN.T = 0;
-OCEAN.S = 32; 
+OCEAN.T = -1.8;
+OCEAN.S = 33; 
 
 OCEAN.T_b = @(z) -1.8;
 OCEAN.S_b = @(z) 33;
-
-
 
 
 %% Set Advection Options
 OPTS.Domainwidth = 1e5; 
 var = [5^2 .125^2];
 
-psi = mvnpdf([0*FSTD.meshR(:) FSTD.meshH(:)],[0 1],var);
+psi = mvnpdf([0*FSTD.meshR(:) FSTD.meshH(:)],[0 1.5],var);
 psi = reshape(psi,length(FSTD.Rint),length(FSTD.H))./FSTD.dA;
 
 ADVECT.FSTD_in = 1*psi/ sum(psi(:).*FSTD.dA(:)); 
@@ -67,12 +66,19 @@ EXFORC.nu(:,1) = 0;
 var = [5^2 .125^2];
 % Make a Gaussian at thickness 1.5 m and size 25 m with variance var.
 
-psi = mvnpdf([FSTD.meshR(:) FSTD.meshH(:)],[750 1.5],var);
-psi = psi/sum(psi(:));
-psi = FSTD.meshR.^(-2) ./ FSTD.dA;
+psi = mvnpdf([0*FSTD.meshR(:) FSTD.meshH(:)],[0 1.5],var);
+psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
+
+% psi = FSTD.meshR.^(-2) ./ FSTD.dA);
+[~,b] = find(FSTD.Rint > 5,1);
+
+RR = FSTD.meshR; 
+RR(1:b-1,:) = Inf; 
+
+psi = psi .* (RR.^(-2));
+psi(isnan(psi)) = 0; 
 psi = reshape(psi,length(FSTD.Rint),length(FSTD.H));
 
 
 % Initial concentration is 50%
-FSTD.psi = .5*psi/ sum(psi(:).*FSTD.dA(:)); 
-% FSTD.psi = 0*ADVECT.FSTD_in; 
+FSTD.psi = .75*psi/ sum(psi(:).*FSTD.dA(:)); 

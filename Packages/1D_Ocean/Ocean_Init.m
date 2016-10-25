@@ -15,7 +15,7 @@ end
 
 if ~isfield(OCEAN,'S')
     
-    OCEAN.S = 34; % Mixed Layer Salinity in psu
+    OCEAN.S = 33; % Mixed Layer Salinity in psu
     
 end
 
@@ -34,14 +34,14 @@ end
 if ~isfield(OCEAN,'kappa_turb')
     % The turbulent exchange with the deep layer below. Pick length scale
     % of 25 meters, time scale of 30 days. 
-    OCEAN.kappa_turb = 25^2 / (30*86400);
+    OCEAN.kappa_turb = 25^2 / (60*86400);
     
 end
 
 if ~isfield(OCEAN,'kappa_conv')
     % The strength of convective exchange. Pick length scale
     % of 25 meters, time scale of 7 days. 
-    OCEAN.kappa_conv = OCEAN.kappa_turb * 10;
+    OCEAN.kappa_conv = 10*OCEAN.kappa_turb;
     
 end
 

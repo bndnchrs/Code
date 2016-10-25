@@ -13,32 +13,16 @@ DIAG = struct();
 EXFORC = struct(); 
 ADVECT = struct();
 
+%% General Options
+OPTS.saveplots = 0; 
+OPTS.dt = 86400/24;
+OPTS.nr = 90; 
+OPTS.nh = 13; 
 
-% Set General options
-OPTS.nt = 24*30; % Number of timesteps
-OPTS.dt = 3600; % Timestep duration
-OPTS.nh = 13; % No. of thickness categories 
+OPTS.nt = 14*24;
 
-DH = .2; % Thickness increment (m)
-
-% Linearly spaced time vector
-OPTS.time = linspace(OPTS.dt,OPTS.nt*OPTS.dt,OPTS.nt); 
-
-% Initial discretization. Spaced at spacing to guarantee conservation of
-% volume using mechanics. 
-
-FSTD.Rint(1) = .5;
-
-for i = 2:65
-    FSTD.Rint(i) = sqrt(2*FSTD.Rint(i-1)^2 - (4/5) * FSTD.Rint(i-1)^2);
-end
-
-OPTS.nr = length(FSTD.Rint); % Number of size categories
-FSTD.H = .1:.2:2.5; % Thickness Vector
-
-OPTS.r_p = .5; % Minimum floe size category
-OPTS.h_p = .1; % Minimum thickness category
-
-%% First Run Initialization to get all the default fields we will use 
-
-% Initialize the FSTD Main Parts
+%% Plotting Options
+DIAG.plot_realtime = 0; 
+DIAG.PLOT_FSTD = 1; 
+DIAG.PLOT_OCEAN = 0; 
+OPTS.saveplots = 1; 
