@@ -1,6 +1,11 @@
 %% Parameters of the Ice Thickness Distribution
 %% Details of the Floe Size Distribution
 
+if ~isfield(OPTS,'save_run_output')
+    % Save Run? 
+    OPTS.save_run_output = 1;
+end
+
 % Number of size classes
 if ~isfield(OPTS,'nr')
     OPTS.nr = 65;
@@ -20,6 +25,8 @@ if ~isfield(FSTD,'Rint')
     end
     
 end
+
+
 
 % Increment between floe sizes
 if ~isfield(OPTS,'dr')

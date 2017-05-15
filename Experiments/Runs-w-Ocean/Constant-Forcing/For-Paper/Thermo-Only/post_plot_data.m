@@ -1,12 +1,14 @@
 % post_plot_data;
-if isfield(PLOTS,'fig_pplot')
-    
-    try
-        close(PLOTS.fig_pplot)
-    catch err
-    end
-    
-end
+% 
+% 
+% if isfield(PLOTS,'fig_pplot')
+%     
+%     try
+%         close(PLOTS.fig_pplot)
+%     catch err
+%     end
+%     
+% end
 
 [~,b] = find(FSTD.Rint > 5,1);
 [~,c] = find(FSTD.Rint >= 500,1);
@@ -103,7 +105,7 @@ llim = floor(log10(1/length(DIAG.FSTD.R)) - 1);
 grid on
 box on
 xlabel('Floe Size')
-title('FSD(r)dr (normalized to 1)')
+title('FSD(r) (normalized to 1)')
 ylabel('log10(m^2/m^2)')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
 % legend(str)
@@ -119,7 +121,7 @@ axis xy
 grid on
 box on
 ylabel('FSD')
-title('log_{10} of FSD(r)dr')
+title('log_{10} of FSD(r)')
 xlabel('Floe Size (m)')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
 ylim([1e-3 .1])
@@ -180,8 +182,6 @@ legend(str)
 % colormap(cmap2)
 
 %% Plot the power-law behavior
-
-Ax{2} = subplot(132);
 
 [~,b] = find(FSTD.Rint > 5,1);
 [~,c] = find(FSTD.Rint >= 500,1);
@@ -244,15 +244,42 @@ perovich_alpha = (8 * c_a * R - c_p * D1)./(4*c_a * R - c_p*D1) - 1;
 % plot(abciss,perovich_alpha(2:d),'linewidth',1,'color',cplots(2,:))
 % plot(abciss,horvat_alpha(2:d),'linewidth',1,'color',cplots(3,:))
 
-plot(c_a(2:d),plaw,'color',cplots(1,:))
-hold on
-% plot(c_a(2:d),beta_plaw','color',cplots(3,:))
 
+%% Do goodness-of-fit-test
+
+b = 1; 
+c = size(DIAG.FSTD.psi,1); 
+d = d;
+VC_FSD = DIAG.FSTD.psi(b:c,:,1:d);
+VC_FSD = squeeze(sum(bsxfun(@times,VC_FSD,FSTD.dH),2));
+VC_dR = FSTD.dR(b:c)';
+VC_R = FSTD.Rint(b:c);
+
+
+[VC_alpha,VC_xmin,VC_L,UN_alpha,UN_xmin,UN_n,VC_p,VC_gof] = calc_power_law_stuff(VC_FSD,VC_dR,VC_R); 
+
+%%
+subplot(1,3,2)
+
+Ax{2} = gca;
+
+hold on
+plot(c_a(2:d),plaw,'color',cplots(1,:))
 plot(c_a(2:d),horvat_alpha(2:d),'--','color',cplots(1,:))
+
+VC_y = smooth(VC_alpha(2:d)); 
+VC_x = c_a(2:d); 
+VC_err = UN_alpha(2:d); 
+
+plot(c_a(2:d),VC_y,'-k')
+
+patch([VC_x fliplr(VC_x)],[VC_y'+VC_err fliplr(VC_y'-VC_err)],[0.7 0.7 0.7],'facealpha',.5);
 % plot(c_a(2:d),beta(2:d),'--','color',cplots(2,:))
 
+%%
+set(Ax{2},'xdir','reverse','ycolor','k','xcolor','k')
+% set(Ax{5},'xdir','reverse','ycolor','r','xcolor','k')
 
-set(gca,'xdir','reverse')
 grid on
 box on
 xlabel('Ice Concentration')
@@ -261,30 +288,32 @@ title('Power-Law Decay')
 xlim([min(abciss) max(abciss)])
 ylim([1 2.5])
 legend('Fit \alpha','P+J \alpha')
+
+
 %%
 
 
 subplot(131);
-
-[AX,H1,H2] = plotyy(FSTD.time/OPTS.day,DIAG.FSTD.conc(2:end),FSTD.time/OPTS.day,DIAG.FSTD.Vtot(2:end))
+hold off
+[AX,H1,H2] = plotyy(FSTD.time/OPTS.day,DIAG.FSTD.Vtot(2:end),FSTD.time/OPTS.day,DIAG.FSTD.conc(2:end))
 
 Ax{1} = AX(1); 
 Ax{4} = AX(2);
 
-axis(Ax{3})
-ylabel('%')
+% axis(Ax{1})
+ylabel(Ax{4},'%')
 % ,'color',cplots(1,:))
 hold on
 % plot(FSTD.time/OPTS.day,DIAG.FSTD.Vtot(2:end),'color',cplots(2,:))
 axis(Ax{4})
-hold on
 plot(FSTD.time/OPTS.day,DIAG.FSTD.Hmean(2:end),'color',cplots(3,:))
 hold off
 ylabel('m')
-
-
+xlabel('Time (days)')
+ylim(Ax{4},[0 1])
+ylim(Ax{1},[0 2])
 title('Ice Variables')
-legend('c','H','V','location','northwest')
+legend('V','H','C','location','northwest')
 
 % set(gca,'xtick',ticks,'xticklabel',mos)
 %
@@ -396,5 +425,5 @@ for i = 1:length(Ax)
 end
 
 
-saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Fig-2/Fig-2.pdf')
-saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Fig-2/Fig-2.fig')
+% saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Fig-2/Fig-2.pdf')
+% saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Fig-2/Fig-2.fig')

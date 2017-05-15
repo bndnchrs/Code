@@ -1,12 +1,12 @@
-% post_plot_data;
-if isfield(PLOTS,'fig_pplot')
-    
-    try
-        close(PLOTS.fig_pplot)
-    catch err
-    end
-    
-end
+close all% post_plot_data;
+% if isfield(PLOTS,'fig_pplot')
+%
+%     try
+%         close(PLOTS.fig_pplot)
+%     catch err
+%     end
+%
+% end
 
 [~,b] = find(FSTD.Rint > 5,1);
 [~,c] = find(FSTD.Rint > 50,1);
@@ -47,7 +47,7 @@ daybeg = 2;
 xlimmer = [0 14];
 
 %% Make the Contour plots of ITD/FSD
-Ax{3} = subplot(133);
+Ax{3} = subplot(122);
 
 inds = 1:7*23:length(FSTD.time);
 nplots = length(inds);
@@ -114,8 +114,7 @@ llim = floor(log10(1/length(DIAG.FSTD.R)) - 1);
 grid on
 box on
 xlabel('Floe Size')
-title('FSD(r)dr (normalized to 1)')
-ylabel('log10(m^2/m^2)')
+title('FSD(r) (normalized to 1)')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
 % legend(str)
 % set(gca,'ylim',[llim 0])
@@ -129,9 +128,8 @@ set(gca,'yscale','log')
 axis xy
 grid on
 box on
-ylabel('Floe Size')
-title('log_{10} of FSD(r)dr')
-xlabel('Time')
+title('log_{10} of FSD(r)')
+xlabel('Size (m)')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
 ylim([1e-4 1])
 xlim([FSTD.Rmid(b) 500])
@@ -145,7 +143,7 @@ Ax{2} = subplot(132);
 
 cvals = [50 500];
 
-for ind = 1
+for ind = 1:2
     
     [~,c] = find(FSTD.Rint > cvals(ind),1);
     
@@ -168,8 +166,11 @@ for ind = 1
         
         c_a(i) = sum(FSDinert(:,i).*dRinert,1);
         c_p(i) = 2*sum(FSDinert(:,i).*dRinert.*FSTD.Rint(b:c).^(-1)');
-        p = polyfit(log10(Rinert),FSDinertlog(:,i)',1);
+        
+        [p,S] = polyfit(log10(Rinert),FSDinertlog(:,i)',1);
         coeff(i) = -p(1);
+        coeff2(i) = -p(2);
+        normr(i) = S.normr;
         
     end
     
@@ -207,14 +208,16 @@ for ind = 1
         plot(abciss,plaw,'color','k')
         hold on
         % plot(c_a(2:d),beta_plaw','color',cplots(3,:))
-        plot(abciss,horvat_alpha,'--','color','k')
+        plot(abciss,horvat_alpha,'-','color',cplots(2,:))
         % plot(c_a(2:d),beta(2:d),'--','color',cplots(2,:))
-        good_plaw = plaw; 
+        good_plaw = plaw;
     else
-        plot(abciss,horvat_alpha,'--','color',cplots(3,:))
+        plot(abciss,horvat_alpha,'-','color',cplots(3,:))
     end
     
-    
+    ha{ind} = horvat_alpha; 
+    pl{ind} = plaw; 
+    er{ind} = normr; 
     
     set(gca,'xdir','normal')
     grid on
@@ -225,11 +228,11 @@ for ind = 1
     
     % xlim([min(abciss) max(abciss)])
     ylim([1.5 2.5])
-
+    
     
 end
 
-legend('Computed - 50 m','P+J - 50 m','P+J - 500 m','location','southwest')
+legend('Computed','P+J','location','southwest')
 
 %%
 
@@ -241,7 +244,7 @@ hold on
 %plot(FSTD.time/OPTS.day,DIAG.FSTD.Vtot(2:end),'color',cplots(2,:))
 % plot(FSTD.time/OPTS.day,DIAG.FSTD.Hmean(2:end),'color',cplots(3,:))
 hold off
-
+xlabel('Time (days)')
 ylabel('m')
 title('Mean Floe Size')
 % legend('Mean Floe Size','location','northwest')
@@ -354,5 +357,5 @@ for i = 1:length(Ax)
 end
 
 
-saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Model-Output/For-Paper/Waves-Advect/Fig-6.pdf')
-saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Model-Output/For-Paper/Waves-Advect/Fig-6.fig')
+saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Fig-4/Fig-4.pdf')
+saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Fig-4/Fig-4.fig')

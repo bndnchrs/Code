@@ -12,6 +12,7 @@ OPTS.path_of_code = '/Users/Horvat/Research/FSTD-Code/Code/';
 OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/Simple_Waves/'; 
 OPTS.figpath = '~/Dropbox/FSTD/Manuscripts/FSTD-Code-Feedbacks/Figures/Simple-Runs/Waves-Only/Waves-Only';
 
+OPTS.save_run_output = 0; 
 
 % Add to the path
 addpath([OPTS.path_of_code 'Core/']); 

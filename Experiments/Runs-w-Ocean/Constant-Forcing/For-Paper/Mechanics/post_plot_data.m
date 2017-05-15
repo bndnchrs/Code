@@ -1,12 +1,12 @@
 % post_plot_data;
-if isfield(PLOTS,'fig_pplot')
-    
-    try
-        close(PLOTS.fig_pplot)
-    catch err
-    end
-    
-end
+% if isfield(PLOTS,'fig_pplot')
+%     
+%     try
+%         close(PLOTS.fig_pplot)
+%     catch err
+%     end
+%     
+% end
 
 [~,b] = find(FSTD.Rint > 5,1);
 [~,c] = find(FSTD.Rint >= 500,1);
@@ -114,7 +114,7 @@ llim = floor(log10(1/length(DIAG.FSTD.R)) - 1);
 grid on
 box on
 xlabel('Floe Size')
-title('FSD(r)dr (normalized to 1)')
+title('FSD(r) (normalized to 1)')
 ylabel('log10(m^2/m^2)')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
 % legend(str)
@@ -130,8 +130,8 @@ axis xy
 grid on
 box on
 ylabel('Floe Size')
-title('log_{10} of FSD(r)dr')
-xlabel('Time')
+title('log_{10} of FSD(r)')
+xlabel('Size (m)')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
 ylim([1e-3 .1])
 xlim([FSTD.Rmid(b) FSTD.Rmid(c)])
@@ -215,8 +215,10 @@ for i = 1:size(FSDinert,2)
     
     c_a(i) = sum(FSDinert(:,i).*dRinert,1);
     c_p(i) = 2*sum(FSDinert(:,i).*dRinert.*FSTD.Rint(b:c).^(-1)');
-    p = polyfit(log10(Rinert),FSDinertlog(:,i)',1);
+    [p,S] = polyfit(log10(Rinert),FSDinertlog(:,i)',1);
     coeff(i) = -p(1);
+    coeff2(i) = -p(2); 
+    normr(i) = S.normr; 
     
 end
 
@@ -250,7 +252,8 @@ perovich_alpha = (8 * c_a * R - c_p * D1)./(4*c_a * R - c_p*D1) - 1;
 % plot(abciss,perovich_alpha(2:d),'linewidth',1,'color',cplots(2,:))
 % plot(abciss,horvat_alpha(2:d),'linewidth',1,'color',cplots(3,:))
 
-plot(abciss,plaw,'color',cplots(1,:))
+%plot(abciss,plaw,'color',cplots(1,:))
+shadedErrorBar(abciss,plaw,normr(2:d))
 hold on
 % plot(c_a(2:d),beta_plaw','color',cplots(3,:))
 
@@ -267,31 +270,34 @@ title('Power-Law Decay')
 % xlim([min(abciss) max(abciss)])
 % ylim([1.5 2.5])
 legend('Computed','P+J')
+
+%% Error estimates
 %%
 
 
 subplot(131);
-
-[AX,H1,H2] = plotyy(FSTD.time/OPTS.day,DIAG.FSTD.conc(2:end),FSTD.time/OPTS.day,DIAG.FSTD.Vtot(2:end));
+hold off
+[AX,H1,H2] = plotyy(FSTD.time/OPTS.day,DIAG.FSTD.Vtot(2:end),FSTD.time/OPTS.day,DIAG.FSTD.conc(2:end))
 
 Ax{1} = AX(1); 
 Ax{4} = AX(2);
-
-axis(Ax{3})
-ylabel('%')
-% ylim([0 1])
+ylim(Ax{4},[0 1])
+ylim(Ax{1},[0 3])
+set(Ax{4},'ytick',[0 .25 .5 .75 1])
+set(Ax{1},'ytick',[0 .75 1.5 2.25 3])
+% axis(Ax{1})
+ylabel(Ax{4},'%')
 % ,'color',cplots(1,:))
 hold on
 % plot(FSTD.time/OPTS.day,DIAG.FSTD.Vtot(2:end),'color',cplots(2,:))
-%axis(Ax{1})
-%hold on
+axis(Ax{4})
 plot(FSTD.time/OPTS.day,DIAG.FSTD.Hmean(2:end),'color',cplots(3,:))
 hold off
 ylabel('m')
-ylim([0 2.5])
-
+xlabel('Time (days)')
 title('Ice Variables')
-legend('c','H','V','location','northwest')
+legend('V','H','C','location','northwest')
+
 
 % set(gca,'xtick',ticks,'xticklabel',mos)
 %

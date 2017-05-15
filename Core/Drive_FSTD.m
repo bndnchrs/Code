@@ -43,7 +43,12 @@ addpath([OPTS.path_of_code 'Core/Initialization'])
 [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT,PLOTS] = FSTD_Run(FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT,PLOTS);
 
 % This saves it. Sent as a function to be compatible with parfor
-Save_Run_Output(FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT,PLOTS);
+
+if OPTS.save_run_output
+    
+    Save_Run_Output(FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT,PLOTS);
+    
+end
 
 end
 
@@ -55,7 +60,7 @@ function [FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT,PLOTS] = FSTD_Pre
 
 %% This initializes the main model components
 % Set_General_Run_Variables is defined in the run directory
-[FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT] = Initialize_Model(FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT); 
+[FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT] = Initialize_Model(FSTD,OPTS,THERMO,MECH,WAVES,DIAG,EXFORC,OCEAN,ADVECT);
 
 %% This sets the specific variables for each model component
 % Set_Specific_Run_Variables is defined in the run directory

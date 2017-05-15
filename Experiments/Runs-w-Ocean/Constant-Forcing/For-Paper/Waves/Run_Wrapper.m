@@ -9,7 +9,7 @@ OPTS = struct();
 
 % This path points to where Drive_FSTD.m is contained
 OPTS.path_of_code = '/Users/Horvat/Research/FSTD-Code/Code/';
-OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/For-Paper/Mech-Advect/'; 
+OPTS.savepath = '/Users/Horvat/Research/FSTD-Code/Output/For-Paper/Waves-Advect/'; 
 OPTS.figpath = '~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Model-Output/For-Paper/Waves-Advect/Out';
 
 % Add to the path

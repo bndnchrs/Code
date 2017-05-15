@@ -1,12 +1,12 @@
 % post_plot_data;
-if isfield(PLOTS,'fig_pplot')
-    
-    try
-        close(PLOTS.fig_pplot)
-    catch err
-    end
-    
-end
+% if isfield(PLOTS,'fig_pplot')
+%     
+%     try
+%         close(PLOTS.fig_pplot)
+%     catch err
+%     end
+%     
+% end
 
 [~,b] = find(FSTD.Rint > 5,1);
 [~,c] = find(FSTD.Rint > 50,1);
@@ -114,8 +114,8 @@ llim = floor(log10(1/length(DIAG.FSTD.R)) - 1);
 grid on
 box on
 xlabel('Floe Size')
-title('FSD(r)dr (normalized to 1)')
-ylabel('log10(m^2/m^2)')
+title('FSD(r) (normalized to 1)')
+% ylabel('log10(m^2/m^2)')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
 % legend(str)
 % set(gca,'ylim',[llim 0])
@@ -129,8 +129,8 @@ set(gca,'yscale','log')
 axis xy
 grid on
 box on
-ylabel('Floe Size')
-title('log_{10} of FSD(r)dr')
+% ylabel('Floe Size')
+title('log_{10} of FSD(r)')
 xlabel('')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
 ylim([1e-7 .2])
@@ -158,7 +158,7 @@ Ax{4} = subplot(234);
 intervalx = [5 50 150];
 intervalend = [50 150 1500];
 
-for ind = 1%:length(intervalx)
+for ind = 1
     
     
     [~,b] = find(FSTD.Rint > intervalx(ind),1);
@@ -176,18 +176,37 @@ for ind = 1%:length(intervalx)
     % dAinert = DIAG.FSTD.dA(b:c,:,1:d);
     FSDinert = squeeze(sum(bsxfun(@times,FSDinert,FSTD.dH),2));
     dRinert = FSTD.dR(b:c)';
-    % FSDinert = bsxfun(@rdivide,FSDinert, sum(FSDinert,1));
-    % mfs = sum(bsxfun(@times,Rinert',FSDinert));
+    % FSDinert = bsxfun(@rdivide,FSDinert, sum(FSDinert,1));    
+   
     
     FSDinertlog = log10(FSDinert + eps);
+    
+    Ninert = bsxfun(@rdivide,FSDinert,(pi * (Rinert').^2)); 
+    Ntot = sum(bsxfun(@times,Ninert,dRinert),1); 
     
     for i = 1:size(FSDinert,2)
         
         c_a(i) = sum(FSDinert(:,i).*dRinert,1);
         c_p(i) = 2*sum(FSDinert(:,i).*dRinert.*FSTD.Rint(b:c).^(-1)');
-        p = polyfit(log10(Rinert),FSDinertlog(:,i)',1);
-        coeff(i) = -p(1);
-        
+        [p,S] = polyfit(log10(Rinert),FSDinertlog(:,i)',1);
+    coeff(i) = -p(1);
+    coeff2(i) = -p(2); 
+    normr{ind}(i) = S.normr; 
+    cc{ind}(i) = coeff(i); 
+    
+    FSD2 = Rinert .^(-coeff(i));
+    N2 = FSD2 ./ (pi * (Rinert).^2);
+    Ntot2 = sum(N2.*dRinert'); 
+  %  FSD2 = FSD2 / sum(FSD2); 
+    
+    mfs{ind,1}(i) = sum(Ninert(:,i).*dRinert'.*2*pi*Rinert') / Ntot(i);
+    mfs{ind,2}(i) = sum(2*FSD2.*dRinert./Rinert) / sum(FSD2.*dRinert ./ (pi*Rinert.^2));  
+    
+  %   sum(bsxfun(@times,2./Rinert',FSD2(:,i))) ./ sum(bsxfun(@times,1./(pi*Rinert.^2)',FSDinert));
+
+    
+    
+    
     end
     
     % This is the power-law decay of this function, beta
@@ -251,16 +270,29 @@ legend({'5-50','P+J','50-150','P+J','150-1500','P+J'})
 
 Ax{1} = subplot(231);
 
-plot(FSTD.time/OPTS.day,DIAG.FSTD.conc(2:end),'color',cplots(1,:))
+[AX,H1,H2] = plotyy(FSTD.time/OPTS.day,DIAG.FSTD.Vtot(2:end),FSTD.time/OPTS.day,DIAG.FSTD.conc(2:end));
+Ax{1} = AX(1); 
+Ax{6} = AX(2);
+ylim(Ax{1},[0 2])
+ylim(Ax{6},[0 1])
+set(Ax{1},'ytick',[0 .5 1 1.5 2])
+set(Ax{6},'ytick',[0 .25 .5 .75 1])
+% axis(Ax{1})
+ylabel(Ax{6},'%')
+% ,'color',cplots(1,:))
 hold on
-plot(FSTD.time/OPTS.day,DIAG.FSTD.Vtot(2:end),'color',cplots(2,:))
+% plot(FSTD.time/OPTS.day,DIAG.FSTD.Vtot(2:end),'color',cplots(2,:))
+axis(Ax{1})
 plot(FSTD.time/OPTS.day,DIAG.FSTD.Hmean(2:end),'color',cplots(3,:))
+
 hold off
-
 ylabel('m')
+xlabel('Time (days)')
+title('Ice Variables')
+legend('V','H','C','location','northwest')
+set(Ax{1},'xlim',xlimmer)
+set(Ax{6},'xlim',xlimmer)
 
-legend('c','V','h')
-xlim(xlimmer)
 %% Plot ITD
 
 Ax{3} = subplot(233);
@@ -298,9 +330,9 @@ llim = floor(log10(1/length(DIAG.FSTD.H)) - 1);
 
 grid on
 box on
-xlabel('Floe Size')
-title('FSD(r)dr (normalized to 1)')
-ylabel('log10(m^2/m^2)')
+% xlabel('Floe Size')
+% title('FSD(r) (normalized to 1)')
+% ylabel('log10 of FSD(r)')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
 % legend(str)
 % set(gca,'ylim',[llim 0])
@@ -311,9 +343,9 @@ set(gca,'yscale','log')
 axis xy
 grid on
 box on
-ylabel('Ice Thickness')
-title('log_{10} of ITD(r)dr')
-xlabel('Time')
+% ylabel('Ice Thickness')
+title('log_{10} of ITD(h)')
+xlabel('')
 set(gca,'ydir','normal','layer','top','fontname','helvetica','fontsize',14)
 ylim([1e-3 2])
 xlim([FSTD.H(1) FSTD.H(end)])
@@ -360,7 +392,7 @@ legend('Advection','Thermo','Mech','Waves','location','southeast')
 Ax{5} = subplot(235);
 dur = 6*7; 
 
-
+%%
 dFnet = DIAG.FSTD.diff_FSD; 
 dF{1} = DIAG.ADVECT.diff_FSD; 
 dF{2} = DIAG.THERMO.diff_FSD; 
@@ -372,7 +404,7 @@ hold on
 for i = 1:4
     plotter = mean(dF{i}(:,end-dur:end),2);
     
-    semilogx(FSTD.Rint,plotter,'color',cplots(i,:)); 
+    semilogx(FSTD.Rint,plotter,'color',cplots(i,:),'linewidth',2); 
     
 end
 
@@ -402,24 +434,24 @@ ylimmer = get(gca,'ylim');
 yvals = linspace(ylimmer(1),ylimmer(2),100); 
 plot(xvals,yvals,'--k')
 
-annotation('textbox',[.435 .65 .025 .025], ...
-    'String','I','LineStyle','none','FontName','Times', ...
-    'FontSize',20);
-annotation('textbox',[.5 .65 .025 .025], ...
-    'String','II','LineStyle','none','FontName','Times', ...
-    'FontSize',20);
-annotation('textbox',[.59 .65 .025 .025], ...
-    'String','III','LineStyle','none','FontName','Times', ...
-    'FontSize',20);
-annotation('textbox',[.435 .15 .025 .025], ...
-    'String','I','LineStyle','none','FontName','Times', ...
-    'FontSize',20);
-annotation('textbox',[.5 .15 .025 .025], ...
-    'String','II','LineStyle','none','FontName','Times', ...
-    'FontSize',20);
-annotation('textbox',[.59 .15 .025 .025], ...
-    'String','III','LineStyle','none','FontName','Times', ...
-    'FontSize',20);
+% annotation('textbox',[.435 .65 .025 .025], ...
+%     'String','I','LineStyle','none','FontName','Times', ...
+%     'FontSize',20);
+% annotation('textbox',[.5 .65 .025 .025], ...
+%     'String','II','LineStyle','none','FontName','Times', ...
+%     'FontSize',20);
+% annotation('textbox',[.59 .65 .025 .025], ...
+%     'String','III','LineStyle','none','FontName','Times', ...
+%     'FontSize',20);
+% annotation('textbox',[.435 .15 .025 .025], ...
+%     'String','I','LineStyle','none','FontName','Times', ...
+%     'FontSize',20);
+% annotation('textbox',[.5 .15 .025 .025], ...
+%     'String','II','LineStyle','none','FontName','Times', ...
+%     'FontSize',20);
+% annotation('textbox',[.59 .15 .025 .025], ...
+%     'String','III','LineStyle','none','FontName','Times', ...
+%     'FontSize',20);
 
 xvals = 150 + 0*(1:100);
 ylimmer = get(gca,'ylim');
@@ -457,5 +489,5 @@ for i = 1:length(Ax)
 end
 
 
-saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Model-Output/For-Paper/All-proc/Fig-6.pdf')
-saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Model-Output/For-Paper/All-proc/Fig-6.fig')
+% saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Fig-5/Fig-5.pdf')
+% saveas(gcf,'~/Dropbox/FSTD/Manuscripts/FSTD-Response/Figures/Fig-5/Fig-5.fig')
